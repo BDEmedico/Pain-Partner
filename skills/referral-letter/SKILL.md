@@ -5,6 +5,8 @@ description: Draft brief referral letters for Victoria from her referral indicat
 
 # Referral letter
 
+Read the shared approved preferences first: repository-root `WORKFLOW-PREFERENCES.md`, or bundled `references/preferences.md` when installed as a portable skill. Those preferences override older wording below.
+
 Use when Victoria asks for a referral letter and supplies a brief indication plus her last clinic note(s), sometimes with imaging. Synthesize multiple notes when provided. Follow Victoria's edits; do not restore material she trimmed. Repeated edits refine the pattern without automatically discarding unrelated guidance.
 
 ## Length and output — both formats
@@ -86,29 +88,3 @@ Victoria requires these workflows and approved preferences to be available from 
 When Victoria authorizes a reusable skill/preference change, preserve the other bundled skills, update the existing cloud plugin as part of the same task, and verify the new version is available. Do not create duplicate plugins or public listings. Do not report a change as saved account-wide without verification. If cloud update access is unavailable, say clearly that the change is local/pending cloud publication and identify the precise blocker. Do not imply built-in automatic local/cloud synchronization.
 
 For cloud work, use the installed plugin's skills; access to the work computer must not be a prerequisite. Clinical note edits alone do not trigger skill changes. This standing preference authorizes maintenance of this personal plugin when a skill change has been authorized, not transmission of patient charts or public sharing.
-
-
-## Victoria's approved procedure-builder drafting workflow
-
-This explicit user preference supersedes earlier instructions requiring individual confirmation pick-lists for every undictated builder detail.
-
-- Authoritative source: /workspace/Pain-Partner/procedure-note-builder.html, the existing uploaded HTML until Victoria supplies a replacement. Read the relevant entries and shared generation logic each time; do not recreate anatomical wording from memory or substitute another procedure.
-- Consult without a performed procedure: when Victoria specifies the planned procedure, use the builder's applicable general and procedure-specific consent wording. Victoria has explicitly confirmed she discusses these items even when omitted from dictation. Do not describe the procedure as performed.
-- Procedure performed: populate the complete applicable builder template, including default targets/selections, positioning, guidance, needles, injectate, consent, screening, complications and disposition, for clinician review. Explicit patient-specific dictation and known facts always override defaults. Never insert a conflicting NKDA, anticoagulation status, injectate, laterality, steroid or outcome.
-- Select the builder's default when an undictated setting has several options, rather than burdening the draft with numerous pick-lists. If no applicable default exists, or patient-specific sources conflict materially, use a focused pre-populated pick-list or flag the unresolved item outside the note.
-- Identify undictated defaults together in one short line OUTSIDE the copyable note: "Builder defaults used for clinician review: ...". In particular distinguish template screening, absence of complications and discharge statements from dictated observations until reviewed. A draft is not a signed record. Do not claim that defaults have been independently verified.
-- Preserve the distinction between intramuscular trigger point injections and ESP plane blocks; between GON, TON and LON; and between different dorsal scapular approaches. Match terminology, targets, guidance and doses throughout.
-- Reconcile total volume and drug dose across all sites. When no dose was dictated, use the builder default, visibly noted outside the note. Never silently resolve a contradictory or implausible dictated dose by guessing.
-- Whole-note coherence check applies to EVERY note: history, interval response, medical conditions, examination, investigations, impression and plan must fit. Flag material mismatches to Victoria outside the note. Suggest plausible alternative diagnoses or additional examination/history documentation that would support the plan, without fabricating findings or implying that undictated care occurred. Add concise diagnostic nuance to the impression only where clinically necessary, and avoid redundant caveats.
-- Do not modify the separate physical-examination workflow as part of this change; Victoria deferred that discussion.
-- Source reading/manual assembly is not a tested invocation of the generator. Do not claim exact generated output unless the generator was actually run. Record unavailable source or tooling plainly outside the note.
-
-## Preserved correspondence preferences
-- Opening clinical summary and modality are separate sentences: "I had the pleasure of following up with this pleasant ... . This was a phone appointment."
-- Retain historical examination findings under "Previous EXAM"; use "EXAM virtual follow up" for the current virtual encounter.
-- Keep missing-source commentary and drafting questions outside the letter. Use pre-populated [null|...] prompts for unresolved clinician-known facts, not administrative "confirm..." prose.
-- Identify the referring physician from CC and address them as "you" warmly and collegially.
-- Medical history, surgical history and previous pain medications are each compact single-line sections; group shared medication responses without losing distinctions.
-- Previous pain procedures: date, abbreviated procedure — response, total corticosteroid drug/dose when known. Prefer rt, lt, bilat, GT, TPI, IA, SIJ, facet, MBB, SLBB, RF.
-- Patient-directed follow-up wording when selected: "Patient-directed follow-up. If functionally limiting pain that's persistent returns before 3 months, we will arrange a phone reassessment to discuss alternatives. If >3 months, repeat bilateral L4/5 and L5/S1 facet injections." Adapt targets and intervals to the dictated plan; do not impose a universal schedule.
-- Dr. Brose is a hematologist.

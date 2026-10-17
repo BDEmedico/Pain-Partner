@@ -1,103 +1,51 @@
 ---
 name: clinic-visit
-description: Prepare Victoria's new-patient pain-clinic chart from referrals, eHealth, intake and Accuro material; merge the encounter into an Accuro consult-note draft with inline pick-lists and a focused review. Use for chart prep, post-visit note drafting, corrections or review of pain-clinic consults.
+description: Victoria's unified clinical-note workflow for chart prep, new consultations, follow-ups, procedure encounters, corrections and review. Merge supplied records and encounter dictation into a concise Accuro draft and focused review. Use for both new and returning patients.
 ---
 
-# Clinic visit
+# Clinical notes — consults and follow-ups
 
-Run chart prep → encounter → consult-note draft → review in one conversation. Read [references/workflow.md](references/workflow.md) before performing the workflow. It contains the original detailed templates, formatting, surgical-referral tracking, medication/lab extraction rules, dictation handling, consent wording and review criteria, adapted from the user's Claude skill.
+One skill handles clinical documentation. Keep the existing `clinic-visit` identifier for continuity; a separate follow-up skill is no longer required. Referral letters remain in `referral-letter`. The HTML procedure builder remains independently editable.
 
-## Codex adaptations and precedence
+## Read first and precedence
 
-These rules take precedence wherever the workflow reference differs:
+1. Read repository-root `WORKFLOW-PREFERENCES.md`, or bundled `references/preferences.md` in a portable/cloud package. Use the provider reader for provider resources; do not assume filesystem paths.
+2. For chart prep, new consults and general structure, read `references/workflow.md`.
+3. For returning patients, also read `references/follow-up-workflow.md` for carry-forward and response tracking.
+4. For procedures, read the selected entries and shared generation logic in repository-root `procedure-note-builder.html`, or bundled `assets/procedure-note-builder.html`. Do not claim the generator ran when only its source was read.
 
-- Work from material the user supplies or explicitly authorizes you to retrieve. The skill does not itself connect to eHealth, PIP, PACS, Wispr Flow or Accuro. Return copyable text; do not claim to have accessed or updated an external chart. Preserve Accuro's literal `[null|option|option]` syntax; the choices are text in Codex, to be resolved in Accuro or by the clinician.
-- Keep each patient separate. Use surname plus another supplied identifier internally if surnames collide; ask which patient if assignment is ambiguous. Do not include extra identifiers in output. Use the latest patient-specific material available in this conversation; if older context is unavailable, request the relevant material rather than reconstructing it.
-- The reference's standing macros are drafting preferences, not evidence that an examination, screening or counselling occurred. Do not assert undictated normal motor/sensation findings, red-flag negatives, informed consent, patient agreement, or a virtual-consult acceptance. Put proposed wording in a confirmation pick-list with null first, at the relevant spot, and briefly identify it as unconfirmed under Judgment calls. For example `- Motor: [null|bilateral L2-S1 5/5|Rt weakness ___|Lt weakness ___]`. Do not default normal findings as plain chart facts. A clinician's explicit patient-specific confirmation resolves the pick-list. Apply this rule to examples as well.
-- The consent paragraph can be offered as a draft macro for clinician confirmation. Do not add a statement that increased bleeding risk was discussed or the patient elected to proceed unless confirmed. Surgical report-back and discharge wording may be offered as the user's standing plan template, with unresolved dates/aim/candidacy kept as pick-lists; do not claim the report was sent or discharge occurred.
-- Treat pharmacy-fill recency as the user's chart-prep convention, not proof of actual medication use. Preserve any stated nonadherence, discontinuation or conflicting patient account. Source-reported values and imaging remain extraction, with no new interpretation added to chart prep.
-- Named-clinician lists and medication-hold wording in the reference are user-supplied local conventions. Do not treat them as verified current credentials or universal medical guidance. For patient instructions, reproduce a hold/restart schedule only when the clinician has selected it for this patient and procedure. If the user requests a new clinical recommendation or safety assessment, verify current authoritative guidance and account for the relevant drug, procedure and patient factors; keep that reasoning outside the note unless the clinician adopts it.
-- No separate PRE-CHART, NOTE REVIEW or referral-letter skill is required. Use the self-contained instructions in the reference. For a requested reasoning answer, distinguish supplied facts from inference and keep the chart-prep block extraction only.
-- Drafting does not authorize transmitting patient material, sending messages, ordering tests, booking procedures or writing to an EHR. Perform such actions only under the user's separate authorization and applicable tool permissions.
+Current patient-specific facts and Victoria's corrections take precedence, followed by shared preferences and this skill. Older reference instructions apply only where consistent. Older vertical history lists, extensive confirmation prose, third-person addressing of the referrer or removal of historical examinations do not override the approved preferences.
 
-Follow the reference's phase detection, surname/phase status line, one-block output, complete-note reissue on corrections, and focused REVIEW section. Keep the clinician's terse voice and explicit source conflicts. Never transfer facts from the illustrative patients into a live patient's note.
-## Feedback format for Victoria's busy clinic
+## Select the mode
 
-When reviewing a note, give complete replacement sections in large, copyable plain-text blocks. If a finding changes IMPRESSION, return the entire revised IMPRESSION in one block, preserving the clinician's unchanged wording wherever it works. If it changes PLAN or another section, return that entire section in its own block. Combine all changes to the same section into one replacement. Put unresolved clinician-only facts and material alternatives directly into inline Accuro `[null|...]` pick-lists, ready to click through. Do not give scattered snippets or require the clinician to assemble patches. Keep explanation outside the blocks brief and limited to material issues; put the usable replacement blocks first after the status and REVIEW heading. Do not reproduce unaffected sections. This replaces the reference's snippet-only review rule, including in review-only mode. Never preselect an uncertain dose, finding or action or invent discussion that occurred.
-## Victoria's agreed formatting and correspondence defaults
+- Chart prep: organize supplied records, without speculative diagnosis or plan. Omit current exam and impression until the encounter unless clinical reasoning is requested.
+- New consult: merge the encounter with supplied records into a complete note.
+- Follow-up: carry forward pertinent background; update procedures/responses, interim history, impression and plan. Preserve historical findings under `Previous EXAM`; use `EXAM virtual follow up` for today's virtual visit. Historical negatives must not appear newly reassessed.
+- Procedure: place the builder draft beneath IMPRESSION, without a duplicate diagnosis line. Do not present planned treatment as performed unless explicitly requested as a post-procedure draft for clinician review.
+- Review only: give material findings and complete replacement sections, not an unsolicited whole-note rewrite.
+- Previous note without an update: acknowledge readiness for encounter dictation.
 
-These defaults override conflicting formatting instructions and examples in the workflow reference.
+## Drafting
 
-- MEDICAL HISTORY is one comma-separated line. Attach relevant context to its diagnosis with a dash or parentheses, for example: `AFib s/p ablation – apixaban, heart failure, OA, GERD, rib fractures after fall Mar 2026`. Keep background sections compact.
-- Write `None` under otherwise empty historical/treatment sections rather than leaving a bare heading. This is Victoria's completion convention; do not let it assert an unconfirmed safety fact. Unknown allergies require a confirmation pick-list, never automatic NKDA. Missing investigations remain unavailable/not provided rather than implying no tests exist.
-- When Victoria dictates normal lumbar motor, write `- Motor: bilateral L2-S1 5/5.` Append any dictated heel/toe walking finding on the same line. When she dictates normal lumbar sensation, write `- Sensation: L2-S1 normal, symmetrical.` Use the relevant region for other spine examinations; do not extend a stated normal finding to an unexamined region. When findings were not dictated, offer confirmation choices instead of asserting normality.
-- Combine general appearance, gait and walking aids on one exam line. Organize the remaining findings by system using Victoria's abbreviations. Record each finding once; greater trochanteric tenderness belongs under GT rather than repeated under both Palpation and GT.
-- Group PLAN bullets by purpose: facet targets, related possible GT injection and the selected anticoagulation plan together; MRI and a conditional epidural together; non-procedural care together. Keep clinically distinct instructions clear. Do not add a redundant follow-up bullet when timing is already explicit.
-- Preserve Victoria's edited wording, deletions and resolved choices. Do not restore removed imaging, qualifiers or follow-up bullets unless a material contradiction requires attention; flag that issue rather than silently reversing her edit. Avoid low-value qualifications such as an unspecified remote opioid agent. Keep attribution where uncertainty, a source conflict or clinical interpretation makes it meaningful.
-- Use measured descriptions of function without intensifying them: `continues to golf` unless the clinician actually says more. Carry forward the concrete management reason the clinician gives for a test, such as `it may change our injection targets`, without inventing one.
-- Letters must be professional, generous and collegial throughout. Credit colleagues' helpful assessments and contributions where supported, for example `Dr. Kriegler has helpfully clarified...`. Describe differences in assessment or plan neutrally and respectfully, with the clinical reason the clinician supplied. Avoid harsh, blaming, dismissive, condescending or adversarial language about colleagues, their decisions or prior care. Generosity must remain factually accurate: do not invent agreement, praise, diagnoses or clinical contributions, and do not obscure a material safety issue. Phrase such issues clearly and respectfully.
-- Keep the HPI and IMPRESSION as coherent, polished narratives in the established voice. Victoria's procedural template remains separate: do not generate, merge or revise a procedure template unless requested. Avoid duplicating detailed consent already supplied in her procedure note; retain only any distinct counselling needed in the impression.
-## Automatic referral-letter companion
+- Keep patients separate. Use supplied or authorized sources. Drafting implies no EHR access, orders, booking, prescription transmission or letter sending.
+- Use a surname/status line outside the note. Do not add unnecessary identifiers. Missing information goes in Review or a focused pre-populated `[null|option|option]` field, not narrative commentary about the drafting process.
+- Separate summary and modality: `I had the pleasure of following up with this pleasant ... . This was a phone appointment.`
+- Medical history, surgical history and previous medications are compact single-line sections. INVESTIGATIONS precedes PREVIOUS PAIN PROCEDURES. Near the end: interim history, previous/current exam, impression, procedure if applicable, plan.
+- Prior procedures: date, abbreviated procedure — response, duration/function, total steroid drug/dose when known. Never infer unknown doses.
+- Address the referring physician named in CC as `you`, courteously. Keep HPI focused on pain; medications and safety screening have dedicated sections.
+- Do not invent exam findings, reassuring negatives, clinical reasoning or outcomes. For the authorized procedure template, populate defaults and identify them together outside the note for review. Known facts override defaults; a template is not independently verified evidence of completed care.
+- Reconcile targets, laterality, procedure, guidance, needles, drugs, concentrations, volumes and total doses. Keep blood aspiration separate from joint-fluid aspiration. Flag contradictory or implausible doses rather than guessing.
+- Use a reasoned, concise impression without redundant caveats. PLAN contains actual decisions, not assistant-generated administrative tasks.
+- A definite new referral plan triggers a companion letter using `referral-letter`. Do not send it. Historical or conditional referrals do not trigger new correspondence.
 
-When the supplied note identifies a first clinic visit or follow-up, select the corresponding visit workflow automatically. If Victoria states in her dictation or current note that she is sending/making a referral, also invoke the available referral-letter skill without requiring a separate request. A definite referral plan is sufficient; a historical referral or an option merely being considered is not.
+## Review and billing
 
-Finish the visit note and focused review, and draft each requested referral as a separate labelled plain-text code block outside the Accuro note. Use the finalized note as source and preserve the stated recipient and clinical question. Do not invent missing indications or recipients. Flag an essential missing fact briefly outside the letter; omit nonessential missing details. Drafting the letter does not authorize sending it.
+Check history, response, exam, imaging, impression and plan for agreement. Flag material mismatches outside the letter; suggest differential diagnoses or missing clinician-known facts where useful without inventing support. Apply calibrated urgency according to progression, severity and evidence. Maximum five meaningful findings; no manufactured issues.
 
-## Approved refinements: pick-lists, concise plans and final checks
+On applicable procedure encounters, append the shared preferences' 5D billing screen outside the note. Use the actual service date or client date in America/Regina, not server UTC. Unknown intervening visits or code scope prevent definitive eligibility claims. Day 31 is not automatic billing eligibility.
 
-These rules override conflicting instructions or examples in this skill and its workflow reference.
+## Delivery and publication
 
-- Use fewer, better-placed pick-lists. Each list replaces a complete grammatical unit. Keep punctuation outside inline lists and avoid adjacent fragments that can produce garbled sentences.
-- Separate independent examination findings. Example: `- Hip: Gluteal pain with FAIR. Log roll: [null|negative|positive]. FABER negative.` When the entire element may be omitted, put its label and finding inside a whole-line list: `[null|- Hip: Log roll negative.|- Hip: Log roll positive.]`. Null must remove that whole optional line cleanly. For an inline field, null may leave a clearly labelled empty field pending completion, never a dangling conjunction, negation or punctuation fragment.
-- Silently substitute every option into each list, then select null, and check the resulting sentence or line for grammatical coherence. Positive and negative findings for one test are mutually exclusive; use multi-select only for compatible facts. If several facts require separate decisions, give each its own clearly labelled list rather than combining them.
-- Brackets resolve clinician-known facts or meaning-bearing ambiguity. Do not invent diagnoses, imaging indications, management branches or the clinician's reasoning as selectable options. If a necessary rationale is absent, use a focused factual completion field or raise the material gap in review. Preserve genuinely unknown facts as unsure.
-- IMPRESSION holds the clinician's reasoning, justification, counselling and relevant logistics. PLAN is a bare-bones action list for a quick glance: action, procedure modality, laterality, target/levels and essential timing only. Keep examination findings, rationale and referral-chasing instructions in the impression. Combine investigation and review timing where useful. The plan must agree with the impression without duplicating it.
-- Do not restore deleted medication choices, rehabilitation suggestions, surgical stop-point bullets or redundant follow-up lines. Preserve the clinician's edits, resolved choices and deletions on every revision. Flag a material contradiction rather than silently reversing an edit.
-- After a procedure changes, reconcile its name throughout impression, consent and plan. A clinician's change from trigger point injections to ESP blocks is a revised plan, not a transcription error; preserve it. Do not conflate ESP blocks with trigger point injections.
-- When generic counselling is appropriate, use: `I counselled that interventional pain procedures are not guaranteed to provide relief and do not change the underlying anatomy. They are an adjunct to self-management of pain.` Preserve the mainly diagnostic exception. Add patient agreement only when supplied or confirmed; keep unconfirmed counselling subject to the existing confirmation rule.
-- In feedback, return complete affected sections with factual uncertainties bracketed in place, combine changes to the same section, and keep the explanation brief. Before initial delivery, check for duplicate sections, unresolved negations, mismatched procedure names and contradiction between impression and plan.
+Provide one complete plain-text note block, or complete affected sections for review corrections. Review, billing checks and default disclosures stay outside it.
 
-## Account-wide availability of saved preferences
-
-Victoria requires these workflows and approved preferences to be available from home and work through her ChatGPT cloud account. The canonical distribution is the personal Pain Partner cloud plugin: https://chatgpt.com/plugins/Plugin_fe83fb96b1bc8191b056547be75b96ec . Local filesystem changes alone do not satisfy a request to save or update a skill.
-
-When Victoria authorizes a reusable skill/preference change, preserve the other bundled skills, update the existing cloud plugin as part of the same task, and verify the new version is available. Do not create duplicate plugins or public listings. Do not report a change as saved account-wide without verification. If cloud update access is unavailable, say clearly that the change is local/pending cloud publication and identify the precise blocker. Do not imply built-in automatic local/cloud synchronization.
-
-For cloud work, use the installed plugin's skills; access to the work computer must not be a prerequisite. Clinical note edits alone do not trigger skill changes. This standing preference authorizes maintenance of this personal plugin when a skill change has been authorized, not transmission of patient charts or public sharing.
-
-
-## Victoria's approved procedure-builder drafting workflow
-
-This explicit user preference supersedes earlier instructions requiring individual confirmation pick-lists for every undictated builder detail.
-
-- Authoritative source: /workspace/Pain-Partner/procedure-note-builder.html, the existing uploaded HTML until Victoria supplies a replacement. Read the relevant entries and shared generation logic each time; do not recreate anatomical wording from memory or substitute another procedure.
-- Consult without a performed procedure: when Victoria specifies the planned procedure, use the builder's applicable general and procedure-specific consent wording. Victoria has explicitly confirmed she discusses these items even when omitted from dictation. Do not describe the procedure as performed.
-- Procedure performed: populate the complete applicable builder template, including default targets/selections, positioning, guidance, needles, injectate, consent, screening, complications and disposition, for clinician review. Explicit patient-specific dictation and known facts always override defaults. Never insert a conflicting NKDA, anticoagulation status, injectate, laterality, steroid or outcome.
-- Select the builder's default when an undictated setting has several options, rather than burdening the draft with numerous pick-lists. If no applicable default exists, or patient-specific sources conflict materially, use a focused pre-populated pick-list or flag the unresolved item outside the note.
-- Identify undictated defaults together in one short line OUTSIDE the copyable note: "Builder defaults used for clinician review: ...". In particular distinguish template screening, absence of complications and discharge statements from dictated observations until reviewed. A draft is not a signed record. Do not claim that defaults have been independently verified.
-- Preserve the distinction between intramuscular trigger point injections and ESP plane blocks; between GON, TON and LON; and between different dorsal scapular approaches. Match terminology, targets, guidance and doses throughout.
-- Reconcile total volume and drug dose across all sites. When no dose was dictated, use the builder default, visibly noted outside the note. Never silently resolve a contradictory or implausible dictated dose by guessing.
-- Whole-note coherence check applies to EVERY note: history, interval response, medical conditions, examination, investigations, impression and plan must fit. Flag material mismatches to Victoria outside the note. Suggest plausible alternative diagnoses or additional examination/history documentation that would support the plan, without fabricating findings or implying that undictated care occurred. Add concise diagnostic nuance to the impression only where clinically necessary, and avoid redundant caveats.
-- Do not modify the separate physical-examination workflow as part of this change; Victoria deferred that discussion.
-- Source reading/manual assembly is not a tested invocation of the generator. Do not claim exact generated output unless the generator was actually run. Record unavailable source or tooling plainly outside the note.
-
-## Preserved correspondence preferences
-- Opening clinical summary and modality are separate sentences: "I had the pleasure of following up with this pleasant ... . This was a phone appointment."
-- Retain historical examination findings under "Previous EXAM"; use "EXAM virtual follow up" for the current virtual encounter.
-- Keep missing-source commentary and drafting questions outside the letter. Use pre-populated [null|...] prompts for unresolved clinician-known facts, not administrative "confirm..." prose.
-- Identify the referring physician from CC and address them as "you" warmly and collegially.
-- Medical history, surgical history and previous pain medications are each compact single-line sections; group shared medication responses without losing distinctions.
-- Previous pain procedures: date, abbreviated procedure — response, total corticosteroid drug/dose when known. Prefer rt, lt, bilat, GT, TPI, IA, SIJ, facet, MBB, SLBB, RF.
-- Patient-directed follow-up wording when selected: "Patient-directed follow-up. If functionally limiting pain that's persistent returns before 3 months, we will arrange a phone reassessment to discuss alternatives. If >3 months, repeat bilateral L4/5 and L5/S1 facet injections." Adapt targets and intervals to the dictated plan; do not impose a universal schedule.
-- Dr. Brose is a hematologist.
-
-
-## Procedure formatting and aspiration clarification
-- Place INVESTIGATIONS before PREVIOUS PAIN PROCEDURES. Keep interim history and examination near the bottom, followed by IMPRESSION, the procedure documentation, then PLAN.
-- Procedure documentation sits under the impression; omit a separate "Diagnosis:" or "Procedure diagnosis:" line, since the diagnosis is already in the impression.
-- Use cc for injectate volumes, retaining mg/mL for concentration. Write "methylprednisolone" rather than "methylprednisolone acetate" in routine injectate lines. Example: "4cc lidocaine 1% + 1cc methylprednisolone 40 mg/mL". Specify division across joints/sites for multiple targets; omit redundant allocation for one joint.
-- Victoria confirms that allergies and antithrombotic use are checked even if not dictated. Populate the preprocedural screen from the patient-specific record unless newer information conflicts. Preserve builder checklist, procedure-specific consent risks and observation/discharge defaults for clinician review.
-- Negative aspiration for blood before injecting is distinct from joint-fluid aspiration. The former is an injection safety check; the latter is a diagnostic/therapeutic procedure. Never infer "no blood aspirated" from "no joint aspiration" or vice versa.
-- Approved ultrasound draft default: "Aspiration was negative for blood before injection at each site. Injectate spread at each target was visualized under real-time ultrasound." Keep ultrasound wording only for ultrasound-guided procedures. Preserve modality-specific contrast/vascular-uptake wording for fluoroscopic procedures.
-- Negative blood aspiration does not exclude intravascular placement. Do not document that it proves no arterial or venous injection, or substitute it for appropriate imaging confirmation.
-- Flag unclear, redundant or inaccurate builder wording to Victoria outside the note so the template can be improved; the builder is an evolving draft source.
+GitHub updates do not publish the installed cloud plugin. Update the existing personal plugin when publishing tools exist, preserving referral capability and the HTML resource. Otherwise prepare a portable bundle and clearly state the missing publication capability; do not claim account-wide availability.

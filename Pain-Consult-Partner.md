@@ -5,6 +5,8 @@ description: Prepare Victoria's new-patient pain-clinic chart from referrals, eH
 
 # Pain Consult Partner
 
+> Legacy reference: the current entry point is `skills/clinic-visit/SKILL.md`, covering both consults and follow-ups. Read `WORKFLOW-PREFERENCES.md` first. Those files override conflicting instructions below. This retained source is not a separate skill to publish.
+
 Run chart prep → encounter → consult-note draft → review in one conversation. Read [#complete-workflow-reference](#complete-workflow-reference) before performing the workflow. It contains the original detailed templates, formatting, surgical-referral tracking, medication/lab extraction rules, dictation handling, consent wording and review criteria, adapted from the user's Claude skill.
 
 ## Review order and copy status
