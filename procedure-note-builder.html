@@ -2669,7 +2669,7 @@
 
   // Assistant follows the room: fluoroscopy and ultrasound lists run with different staff.
   var ASSISTANTS = ["Efe Omita", "Hadiya Sheikh"];
-  var ASSIST_BY_MOD = { fluoro: "Efe Omita", us: "Hadiya Sheikh", landmark: "Hadiya Sheikh" };
+  var ASSIST_BY_MOD = { fluoro: "Efe Omita", us: "Hadiya Sheikh", landmark: "" };
 
   var AFTERCARE_DEFAULT = "The patient was observed for 15 minutes in the waiting room and discharged home in stable condition.";
   var PLAN_ENABLE_DEFAULT = "The block is intended to reduce pain sufficiently to allow progression of the active rehabilitation program.";
@@ -2699,7 +2699,7 @@
     var day = listDate ? weekdayOf(listDate) : "";
     return {
       physician: getPref("physician", "Dr. Tian"),
-      assist: getPref("assistTouched", "") === "1"
+      assist: getPref("modality", "us") === "landmark" ? "" : getPref("assistTouched", "") === "1"
         ? getPref("assist", "")
         : ASSIST_BY_MOD[getPref("modality", "us")],
       assistTouched: getPref("assistTouched", "") === "1",
@@ -4044,7 +4044,7 @@
       function () { return state.modality; },
       function (v) {
         state.modality = v; setPref("modality", v);
-        if (!state.assistTouched) {
+        if (v === "landmark" || !state.assistTouched) {
           state.assist = ASSIST_BY_MOD[v];
           renderAssist();
         }

@@ -74,3 +74,4 @@ This explicit user preference supersedes earlier instructions requiring individu
 - Insert two blank lines before the IMPRESSION heading in clinical notes.
 - Place the heading "PROCEDURE NOTE" immediately above "Procedure performed:" in procedure documentation.
 - Landmark GT injection template: advance to bone contact, then withdraw slightly before injecting. Patient-specific technique always overrides this draft default.
+- All landmark procedures default to no assistant. Omit "assisted by MOA" and other assistant attribution unless Victoria explicitly documents assistance for that encounter.
