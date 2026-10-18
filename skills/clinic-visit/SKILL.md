@@ -20,7 +20,7 @@ Read `references/physical-exam.md` when assembling or reviewing examinations. It
 
 ## Select the mode
 
-- Chart prep: organize supplied records, without speculative diagnosis or plan. Omit current exam and impression until the encounter unless clinical reasoning is requested.
+- Chart prep: organize supplied records and automatically add a separate focused clinical review for Victoria: prioritized differential, discriminating exam/history, and actionable safety or clarification flags relevant to the pain encounter. This overrides older extraction-only instructions. Keep hypotheses and suggested assessments outside the factual chart block. Do not fabricate a current exam or final treatment decision.
 - New consult: merge the encounter with supplied records into a complete note.
 - Follow-up: carry forward pertinent background; update procedures/responses, interim history, impression and plan. Preserve historical findings under `Previous EXAM`; use `EXAM virtual follow up` for today's virtual visit. Historical negatives must not appear newly reassessed.
 - Procedure: place the builder draft beneath IMPRESSION, without a duplicate diagnosis line. Do not present planned treatment as performed unless explicitly requested as a post-procedure draft for clinician review.
@@ -29,6 +29,7 @@ Read `references/physical-exam.md` when assembling or reviewing examinations. It
 
 ## Drafting
 
+- Accept Heidi-generated notes or raw transcripts plus Victoria's brief final summary. Clearly distinguish these sources, preserve her corrections and decisions, and flag material discrepancies. A generated note is not a verified transcript and generic AI normal-exam prose does not invoke her normal macro. Follow the shared preferences for relevance-focused pre-chart review and transcript handling.
 - Keep patients separate. Use supplied or authorized sources. Drafting implies no EHR access, orders, booking, prescription transmission or letter sending.
 - Use a surname/status line outside the note. Do not add unnecessary identifiers. Missing information goes in Review or a focused pre-populated `[null|option|option]` field, not narrative commentary about the drafting process.
 - Separate summary and modality: `I had the pleasure of following up with this pleasant ... . This was a phone appointment.`
