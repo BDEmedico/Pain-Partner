@@ -72,3 +72,5 @@ This explicit user preference supersedes earlier instructions requiring individu
 - Distal is the default dorsal scapular nerve block approach. Consent and technique must follow the selected approach. Proximal remains an explicit option. Actual positioning, needle and observed spread override template defaults.
 - Lifestyle medicine referrals mean Dr. Njaa. Correct dictated "Nia" to "Njaa" in this context. Do not apply this correction to unrelated names or specialties.
 - Insert two blank lines before the IMPRESSION heading in clinical notes.
+- Place the heading "PROCEDURE NOTE" immediately above "Procedure performed:" in procedure documentation.
+- Landmark GT injection template: advance to bone contact, then withdraw slightly before injecting. Patient-specific technique always overrides this draft default.

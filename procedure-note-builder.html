@@ -2290,7 +2290,7 @@
   if (state.modality === "landmark") {
     return "The " + S(side) + "greater trochanter was " + T(n) +
       "palpated and the point of maximal tenderness identified. A " + s.needle +
-      " was directed to bone and withdrawn slightly before injection.";
+      " was advanced until bone contact was made and then withdrawn slightly before injection.";
   }
   return "The " + S(side) + "greater trochanter was " + T(n) +
     "identified in the short-axis plane and its facets profiled in turn, with " + listText(parts) +
@@ -2981,7 +2981,7 @@
   }
 
   function cancelledNote(reasons) {
-    var head = ["Procedure performed: None — elective procedure cancelled."];
+    var head = ["PROCEDURE NOTE", "Procedure performed: None — elective procedure cancelled."];
     if (state.selected.length) {
       head.push("Planned: " + procedureLine().replace("Procedure performed: ", ""));
     }
@@ -3272,8 +3272,8 @@
     var performedBy = "Performed by: " + (state.physician.trim() || "[operator not set]") +
       (state.assist.trim() ? ", assisted by " + state.assist.trim() : "");
     // Diagnosis and date come from the chart, not from here — the note opens on the
-    // procedure line. The date field stays: it drives the follow-up billing threshold.
-    var head = [procedureLine(), performedBy];
+    // PROCEDURE NOTE heading. The date field stays: it drives the follow-up billing threshold.
+    var head = ["PROCEDURE NOTE", procedureLine(), performedBy];
     return head.concat([
       "",
       consentParagraph(),
