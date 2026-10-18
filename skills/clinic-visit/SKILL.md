@@ -16,6 +16,8 @@ One skill handles clinical documentation. Keep the existing `clinic-visit` ident
 
 Current patient-specific facts and Victoria's corrections take precedence, followed by shared preferences and this skill. Older reference instructions apply only where consistent. Older vertical history lists, extensive confirmation prose, third-person addressing of the referrer or removal of historical examinations do not override the approved preferences.
 
+Read `references/physical-exam.md` when assembling or reviewing examinations. It contains the agreed normal macros and multi-select prompts and overrides older examination-template instructions.
+
 ## Select the mode
 
 - Chart prep: organize supplied records, without speculative diagnosis or plan. Omit current exam and impression until the encounter unless clinical reasoning is requested.

@@ -34,7 +34,7 @@ This explicit user preference supersedes earlier instructions requiring individu
 - Preserve the distinction between intramuscular trigger point injections and ESP plane blocks; between GON, TON and LON; and between different dorsal scapular approaches. Match terminology, targets, guidance and doses throughout.
 - Reconcile total volume and drug dose across all sites. When no dose was dictated, use the builder default, visibly noted outside the note. Never silently resolve a contradictory or implausible dictated dose by guessing.
 - Whole-note coherence check applies to EVERY note: history, interval response, medical conditions, examination, investigations, impression and plan must fit. Flag material mismatches to Victoria outside the note. Suggest plausible alternative diagnoses or additional examination/history documentation that would support the plan, without fabricating findings or implying that undictated care occurred. Add concise diagnostic nuance to the impression only where clinically necessary, and avoid redundant caveats.
-- Do not modify the separate physical-examination workflow as part of this change; Victoria deferred that discussion.
+- Physical-examination preferences have now been agreed in `skills/clinic-visit/references/physical-exam.md`. Use those macros and prompts, with specific dictated findings overriding invoked normal findings.
 - Source reading/manual assembly is not a tested invocation of the generator. Do not claim exact generated output unless the generator was actually run. Record unavailable source or tooling plainly outside the note.
 
 ## Preserved correspondence preferences
@@ -88,3 +88,7 @@ This explicit user preference supersedes earlier instructions requiring individu
 - Do not automatically repeat overnight accommodation or division across days as separate PLAN bullets when already explained in the impression. Preserve logistics when Victoria specifically wants them in the plan.
 - When Victoria plans her own virtual response review followed by the referring surgeon's reassessment, use: "Following completion of the injections, I will follow up with him virtually and remind him to book a virtual appointment with your office to review his response and further management." Adapt pronouns and modality to the actual plan.
 - Do not replace this with referring-provider-only follow-up, automatic discharge, or a fixed surgeon appointment that was not arranged. Current dictated follow-up takes precedence over older surgical stop-point macros. Do not assume every surgeon intends reassessment without supporting documentation.
+
+## Physical examination workflow
+- The agreed back, cervical, shoulder and knee macros and optional SIJ, GT and deep gluteal prompts are in `skills/clinic-visit/references/physical-exam.md`. Read that reference when drafting examinations.
+- Collect findings from the entire dictation regardless of order. Invoke normal findings only through Victoria's explicit shorthand. Add focused selectable prompts when a diagnosis lacks dictated examination support, without asserting that unselected positive findings occurred. Preserve whole-note consistency review.
