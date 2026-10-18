@@ -80,3 +80,11 @@ This explicit user preference supersedes earlier instructions requiring individu
 - When bilateral epidurals are planned on separate days because of Victoria's fee-schedule constraint, use: "We are limited to one epidural injection per day, so the left and right sides will be treated on separate days."
 - Add "He elected to proceed on consecutive days" or "She elected to proceed on consecutive days" only when that preference was actually expressed. Otherwise retain the actual scheduling plan.
 - This is a practice scheduling constraint reported by Victoria, not a universal clinical safety rule or an independently verified payer rule. Do not attribute separate-day scheduling to stenosis, postoperative anatomy or another medical rationale unless Victoria explicitly provides that rationale.
+
+## Plan layout and follow-up ownership
+- For several planned fluoroscopic procedures, use one `- Fluoro:` heading, followed by each procedure on its own unbulleted line. Do not repeat the modality prefix or create a separate bullet for every target.
+- Keep a conditional injectate decision on the same line as its associated procedure, rather than making a standalone bullet. Preserve the actual patient-specific indication, drug, dose and condition. This formatting example does not establish a universal treatment or injectate default.
+- Leave a blank line before the next non-procedural plan bullet.
+- Do not automatically repeat overnight accommodation or division across days as separate PLAN bullets when already explained in the impression. Preserve logistics when Victoria specifically wants them in the plan.
+- When Victoria plans her own virtual response review followed by the referring surgeon's reassessment, use: "Following completion of the injections, I will follow up with him virtually and remind him to book a virtual appointment with your office to review his response and further management." Adapt pronouns and modality to the actual plan.
+- Do not replace this with referring-provider-only follow-up, automatic discharge, or a fixed surgeon appointment that was not arranged. Current dictated follow-up takes precedence over older surgical stop-point macros. Do not assume every surgeon intends reassessment without supporting documentation.
