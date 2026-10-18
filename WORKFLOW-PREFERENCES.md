@@ -39,7 +39,7 @@ This explicit user preference supersedes earlier instructions requiring individu
 
 ## Preserved correspondence preferences
 - Clinical letters contain patient information and clinical decisions, not commentary about the drafting process. Put missing-source observations such as "The dose and timing were not specified in this update" and "The MRI has not been confirmed in the material available today" in Review addressed to Victoria, OUTSIDE the copyable letter.
-- Resolve the recipient from the referring physician in CC, even when the family physician field is blank. For a letter to Dr. Asenjo, say "you" or "your" rather than "clarify with Dr. Asenjo". Never invent a plan to chase information simply because the supplied material is incomplete.
+- Resolve the recipient from the referring physician in CC, even when the family physician field is blank. Use the referring physician's name in HPI; use "you" or "your" in IMPRESSION and PLAN. Keep the tone warm, appreciative, professional and collegial. Never invent a plan to chase information simply because the supplied material is incomplete.
 - SURGICAL HISTORY is one compact comma- or semicolon-separated line, preserving material dates and context.
 - PREVIOUS PAIN MEDICATIONS is one compact line, grouping shared responses: "Baclofen, tizanidine and nortriptyline — ineffective / side effects." Preserve distinct responses when different.
 - Keep medication use, antibiotic indication, allergies, anticoagulation and contrast screening in their dedicated sections rather than HPI unless directly relevant to explaining the presenting problem.
@@ -48,8 +48,10 @@ This explicit user preference supersedes earlier instructions requiring individu
 - Opening clinical summary and modality are separate sentences: "I had the pleasure of following up with this pleasant ... . This was a phone appointment."
 - Retain historical examination findings under "Previous EXAM"; use "EXAM virtual follow up" for the current virtual encounter.
 - Keep missing-source commentary and drafting questions outside the letter. Use pre-populated [null|...] prompts for unresolved clinician-known facts, not administrative "confirm..." prose.
-- Identify the referring physician from CC and address them as "you" warmly and collegially.
+- Apply the section-specific addressing rule above: physician name in HPI, "you/your" in IMPRESSION and PLAN.
 - Medical history, surgical history and previous pain medications are each compact single-line sections; group shared medication responses without losing distinctions.
+- Write "left" and "right" in full in IMPRESSION and PLAN; retain lt/rt shorthand in PREVIOUS PAIN PROCEDURES.
+- When bilateral S1 TFESIs with the left side first are the actual plan, use: "Fluoro: bilateral S1 TFESIs, left first." Do not substitute "staged" for "bilateral" or infer bilateral treatment for other patients.
 - Previous pain procedures: date, abbreviated procedure — response, total corticosteroid drug/dose when known. Prefer rt, lt, bilat, GT, TPI, IA, SIJ, facet, MBB, SLBB, RF.
 - Patient-directed follow-up wording when selected: "Patient-directed follow-up. If functionally limiting pain that's persistent returns before 3 months, we will arrange a phone reassessment to discuss alternatives. If >3 months, repeat bilateral L4/5 and L5/S1 facet injections." Adapt targets and intervals to the dictated plan; do not impose a universal schedule.
 - Dr. Brose is a hematologist.
