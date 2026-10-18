@@ -1406,24 +1406,35 @@
       pos: "prone", needle: "22g 3.5 inch spinal needle",
       dx: "Rhomboid myofascial pain", dxAlt: ["Rhomboid myofascial pain", "Interscapular myofascial pain", "Dorsal scapular neuropathy", "Levator scapulae myofascial pain", "Scapulocostal syndrome", "Cervicoscapular myofascial pain syndrome", "Post-whiplash periscapular pain"],
       injLabel: "Dorsal scapular", siteNoun: "sites",
-      consentAdd: "The proximal target sits within the middle scalene, close to the brachial plexus and the phrenic nerve; the patient was counselled on temporary arm weakness, numbness and, rarely, breathlessness. The lung apex is within reach and the risk of pneumothorax was discussed.",
+      consentFn: function (item) {
+        var sites = item.levels || ["Distal"];
+        var risks = [];
+        if (sites.indexOf("Proximal") !== -1) {
+          risks.push("The proximal target sits within the middle scalene, close to the brachial plexus and the phrenic nerve. The patient was counselled on temporary arm weakness, numbness and, rarely, breathlessness. The lung apex is within reach and the risk of pneumothorax was discussed.");
+        }
+        if (sites.indexOf("Distal") !== -1) {
+          risks.push("Given the proximity of the pleura during the distal dorsal scapular nerve block, the risk of pneumothorax was specifically discussed. Temporary weakness of the muscles supplied by the dorsal scapular nerve was also discussed.");
+        }
+        return risks.join(" ");
+      },
       planClass: "diagnostic",
       localText: "Local anesthetic was infiltrated with a " + LOCAL_NEEDLE + ".",
-      levels: { label: "Sites", options: ["Proximal", "Distal"], defaults: ["Proximal"] },
+      levels: { label: "Sites", options: ["Distal", "Proximal"], defaults: ["Distal"] },
       inj: "",
       perTarget: true,
       mixFn: function (item) { return perSide(item, { la: "bupivacaine 0.25%", laVol: 5, stVol: "" }); },
       body: function (s, n, side) {
   var out = [];
-  var L = s.levels || [];
+  var L = s.levels || ["Distal"];
   if (L.indexOf("Proximal") !== -1) {
     out.push("The " + S(side) + "middle scalene was " + T(n) +
       "identified in the short-axis plane at the level of C5, with the dorsal scapular nerve seen piercing the muscle and the brachial plexus confirmed anterolateral to the trajectory. A " +
       s.needle + " was advanced in-plane to the nerve within the muscle, with injectate seen surrounding it.");
   }
   if (L.indexOf("Distal") !== -1) {
-    out.push("The nerve was " + (out.length ? "then " : T(n)) +
-      "identified medial to the medial scapular border in the plane between rhomboid major and serratus posterior superior, with injectate seen separating the two muscles.");
+    out.push("The " + S(side) + "dorsal scapular nerve was " + (out.length ? "then " : T(n)) +
+      "identified distally along the medial scapular border, deep to the rhomboid muscle. Adjacent vessels and the pleura were identified. A " + s.needle +
+      " was advanced in-plane under ultrasound visualization to the perineural plane, avoiding the vessels and pleura. Injectate was visualized spreading around the nerve within this plane.");
   }
   return out.join(" ") || "[no site selected]";
 }

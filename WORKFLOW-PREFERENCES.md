@@ -66,3 +66,7 @@ This explicit user preference supersedes earlier instructions requiring individu
 - Approved ultrasound draft default: "Aspiration was negative for blood before injection at each site. Injectate spread at each target was visualized under real-time ultrasound." Keep ultrasound wording only for ultrasound-guided procedures. Preserve modality-specific contrast/vascular-uptake wording for fluoroscopic procedures.
 - Negative blood aspiration does not exclude intravascular placement. Do not document that it proves no arterial or venous injection, or substitute it for appropriate imaging confirmation.
 - Flag unclear, redundant or inaccurate builder wording to Victoria outside the note so the template can be improved; the builder is an evolving draft source.
+
+## Additional approved wording and approach preferences
+- Prefer connected narrative sentences using "and" over semicolons and dashes. This does not remove compact list formatting or prior-procedure response separators.
+- Distal is the default dorsal scapular nerve block approach. Consent and technique must follow the selected approach. Proximal remains an explicit option. Actual positioning, needle and observed spread override template defaults.
