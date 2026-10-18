@@ -75,3 +75,8 @@ This explicit user preference supersedes earlier instructions requiring individu
 - Place the heading "PROCEDURE NOTE" immediately above "Procedure performed:" in procedure documentation.
 - Landmark GT injection template: advance to bone contact, then withdraw slightly before injecting. Patient-specific technique always overrides this draft default.
 - All landmark procedures default to no assistant. Omit "assisted by MOA" and other assistant attribution unless Victoria explicitly documents assistance for that encounter.
+
+## Epidural scheduling wording
+- When bilateral epidurals are planned on separate days because of Victoria's fee-schedule constraint, use: "We are limited to one epidural injection per day, so the left and right sides will be treated on separate days."
+- Add "He elected to proceed on consecutive days" or "She elected to proceed on consecutive days" only when that preference was actually expressed. Otherwise retain the actual scheduling plan.
+- This is a practice scheduling constraint reported by Victoria, not a universal clinical safety rule or an independently verified payer rule. Do not attribute separate-day scheduling to stenosis, postoperative anatomy or another medical rationale unless Victoria explicitly provides that rationale.
