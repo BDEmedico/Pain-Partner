@@ -1310,7 +1310,7 @@
       planClass: "therapeutic",
       localText: "Local anesthetic was infiltrated with a " + LOCAL_NEEDLE + ".",
       inj: "",
-      mixFn: function (item) { return perSide(item, { la: "bupivacaine 0.25%", laVol: 4, st: "Methylprednisolone 40 mg/mL", stVol: 1 }); },
+      mixFn: function (item) { return perSide(item, { la: "lidocaine 1%", laVol: 4, st: "Methylprednisolone 40 mg/mL", stVol: 1 }); },
       body: function (s, n, side) {
         return "The " + S(side) + "deltoid, acromion, and supraspinatus tendon were " + T(n) + "identified, with the subacromial/subdeltoid bursal plane visualized deep to the acromion. A " + s.needle + " was advanced in-plane toward the bursa, with injectate seen flowing within the bursa.";
       }
