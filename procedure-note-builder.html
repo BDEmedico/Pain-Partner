@@ -1847,6 +1847,58 @@
         return out.join("\n\n");
       }
     },
+    lumbar_root_sequence: {
+      mod: "fluoro", modes: ["fluoro"], group: "lumbar",
+      chip: "Nerve root block ± epidural steroid", card: "Lumbar nerve root block sequence",
+      name: "lumbar nerve root block", pos: "prone", needle: "22g 5 inch spinal needle",
+      dx: "Lumbar radiculopathy", planClass: "diagnostic",
+      injLabel: "Nerve root block", siteNoun: "nerve roots",
+      localDefault: true, localMix: { vol: 2, sites: 1 },
+      localText: "Local anesthetic was infiltrated with a " + LOCAL_NEEDLE + ".",
+      consentAdd: "The risks of vascular injection, dural puncture with headache, epidural hematoma, temporary leg weakness and rare serious neurological injury were discussed.",
+      levels: { label: "Nerve root (one per card; add another card for a different level)", options: ["L1", "L2", "L3", "L4", "L5"], single: true },
+      choice: { key: "intent", label: "Injection sequence", options: [
+        { v: "root_only", label: "Local-anesthetic nerve root block only" },
+        { v: "epidural_then_root", label: "Steroid-only epidural, then nerve root block" }
+      ] },
+      inj: "",
+      mixFn: function (item) {
+        return { contrast: "1", la: "bupivacaine 0.5%", laVol: "1",
+          st: "Dexamethasone 10 mg/mL", stVol: item.intent === "epidural_then_root" ? "1" : "", split: 1 };
+      },
+      nameFn: function (item) {
+        var lv = levelText(item.levels);
+        return item.intent === "epidural_then_root"
+          ? lv + " TFESI (steroid only), followed by " + lv + " nerve root block with " + mixValue(item, "la")
+          : lv + " nerve root block with " + mixValue(item, "la");
+      },
+      injLinesFn: function (item) {
+        var target = upperFirst(item.lat) + " " + levelText(item.levels);
+        var out = [];
+        if (item.intent === "epidural_then_root") out.push({ text: "- " + target + " epidural: " + mixValue(item, "stVol") + " cc " + mixValue(item, "st") + " (steroid only)." });
+        out.push({ text: "- " + target + " nerve root: " + mixValue(item, "laVol") + " cc " + mixValue(item, "la") + (item.intent === "epidural_then_root" ? ", following slight needle withdrawal and repeat contrast confirmation." : ".") });
+        var first = String(mixValue(item, "contrast"));
+        var repeat = item.repeatContrast === undefined ? "1" : item.repeatContrast;
+        var total = Number(first) + Number(repeat);
+        out.push({ text: "- Contrast (" + target + "): " + (item.intent === "epidural_then_root" ? total + " cc (" + first + " cc initially + " + repeat + " cc after repositioning)." : first + " cc.") });
+        return out;
+      },
+      mixTextFn: function (item) { return PROCS.lumbar_root_sequence.injLinesFn(item).map(function (l) { return l.text; }).join("\n"); },
+      body: function (item) {
+        var lv = item.levels[0] || "[level]";
+        var access = { L1: "L1/2", L2: "L2/3", L3: "L3/4", L4: "L4/5", L5: "L5/S1" }[lv] || "[foramen]";
+        var combined = item.intent === "epidural_then_root";
+        var initial = item.rootInitialSpread || (combined ? "nerve root tracking and epidural spread" : "nerve root spread, predominantly in parts where there is epidural spread");
+        var repeat = item.repeatContrast === undefined ? "1" : item.repeatContrast;
+        var text = "A true AP view was obtained and the endplate squared. An ipsilateral oblique view profiled the approach beneath the " + item.lat + " " + lv + " pedicle. A curved " + item.needle + " was advanced through the " + item.lat + " " + access + " foramen, with final position confirmed on AP and true lateral views. " +
+          mixValue(item, "contrast") + " cc contrast injected through microbore tubing under real-time fluoroscopy demonstrated " + initial + ", without arterial, intrathecal or venous uptake. ";
+        if (combined) {
+          text += mixValue(item, "st") + " was administered alone for the therapeutic epidural component. " + (item.rootSteroidRationale && item.rootSteroidRationale.trim() ? ensurePeriod(item.rootSteroidRationale.trim()) + " " : "") + "The needle was then withdrawn slightly and " + repeat + " cc contrast was injected again, demonstrating " + (item.rootRepeatSpread || "nerve root spread, predominantly in parts where there is epidural spread") + ", without arterial, intrathecal or venous uptake. " + mixValue(item, "la") + " was administered at this position. ";
+        } else text += mixValue(item, "la") + " was administered at this position. No corticosteroid was administered at this level. ";
+        if (item.rootSymptoms && item.rootSymptoms.trim()) text += ensurePeriod(item.rootSymptoms.trim()) + " ";
+        return text.trim();
+      }
+    },
     l_ilesi: {
       mod: "fluoro", modes: ["fluoro"], group: "lumbar",
       chip: "Lumbar IL ESI", card: "Lumbar IL ESI", name: "lumbar interlaminar epidural steroid injection",
@@ -2665,7 +2717,7 @@
     }
   };
 
-  var ORDER = ["trigeminal", "gon", "lon", "spg", "tmj", "accessory", "ispb", "splenius", "levscap", "ton", "c_mbb", "c_epidural", "gh_ia", "ac_joint", "sasd", "biceps", "barbotage", "ssn", "axillary", "shoulder_artic", "dorsal_scap", "long_thoracic", "lat_epi", "med_epi", "olecranon", "carpal", "dequervain", "a1_pulley", "cmc", "pecs", "sps", "spi", "rhomb_ic", "esp", "itpb", "ql", "intercostal", "tap", "rectus", "ilio", "t_mbb", "lumbar_facet", "l_mbb", "l_rfa", "tfesi", "l_ilesi", "caudal", "tlip", "lift", "iliolumbar", "bertolotti", "baastrup", "maigne", "sij", "sij_rfa", "cluneal", "deep_gluteal", "pudendal", "impar", "hypogastric", "ischial_bursa", "obturator", "hip_ia_fl", "peritroch", "iliopsoas", "genicular", "knee_ia", "ankle_ia", "subtalar", "navcun", "plantar", "morton", "tarsal", "sup_peroneal", "tpi", "other", "interscapular_5in1"];
+  var ORDER = ["trigeminal", "gon", "lon", "spg", "tmj", "accessory", "ispb", "splenius", "levscap", "ton", "c_mbb", "c_epidural", "gh_ia", "ac_joint", "sasd", "biceps", "barbotage", "ssn", "axillary", "shoulder_artic", "dorsal_scap", "long_thoracic", "lat_epi", "med_epi", "olecranon", "carpal", "dequervain", "a1_pulley", "cmc", "pecs", "sps", "spi", "rhomb_ic", "esp", "itpb", "ql", "intercostal", "tap", "rectus", "ilio", "t_mbb", "lumbar_facet", "l_mbb", "l_rfa", "tfesi", "lumbar_root_sequence", "l_ilesi", "caudal", "tlip", "lift", "iliolumbar", "bertolotti", "baastrup", "maigne", "sij", "sij_rfa", "cluneal", "deep_gluteal", "pudendal", "impar", "hypogastric", "ischial_bursa", "obturator", "hip_ia_fl", "peritroch", "iliopsoas", "genicular", "knee_ia", "ankle_ia", "subtalar", "navcun", "plantar", "morton", "tarsal", "sup_peroneal", "tpi", "other", "interscapular_5in1"];
 
   // Assistant follows the room: fluoroscopy and ultrasound lists run with different staff.
   var ASSISTANTS = ["Efe Omita", "Hadiya Sheikh"];
@@ -3577,7 +3629,8 @@
           b.setAttribute("aria-pressed", String(on));
           b.addEventListener("click", function () {
             var i = item.levels.indexOf(lv);
-            if (i === -1) item.levels.push(lv); else item.levels.splice(i, 1);
+            if (p.levels.single) item.levels = i === -1 ? [lv] : [];
+            else if (i === -1) item.levels.push(lv); else item.levels.splice(i, 1);
             item.levels.sort(function (a, c) {
               return p.levels.options.indexOf(a) - p.levels.options.indexOf(c);
             });
@@ -3605,6 +3658,20 @@
         chWrap.appendChild(chLab);
         chWrap.appendChild(chSeg);
         grid.appendChild(chWrap);
+      }
+
+      if (item.key === "lumbar_root_sequence") {
+        var info = document.createElement("div");
+        info.className = "field wide";
+        info.textContent = "Use one card per side and root. Confirm actual contrast findings; edit them below if spread differs. The combined sequence keeps steroid-only epidural delivery separate from the subsequent local-anesthetic nerve root block.";
+        grid.appendChild(info);
+        grid.appendChild(field("Initial contrast findings", item.rootInitialSpread || "", function (v) { item.rootInitialSpread = v; }, item.intent === "epidural_then_root" ? "nerve root tracking and epidural spread" : "nerve root spread, predominantly in parts where there is epidural spread"));
+        if (item.intent === "epidural_then_root") {
+          grid.appendChild(field("Additional rationale for steroid delivery (optional)", item.rootSteroidRationale || "", function (v) { item.rootSteroidRationale = v; }, "Record only the clinician's stated rationale"));
+          grid.appendChild(field("Repeat contrast cc after withdrawal", item.repeatContrast === undefined ? "1" : item.repeatContrast, function (v) { item.repeatContrast = v; }));
+          grid.appendChild(field("Repeat contrast findings", item.rootRepeatSpread || "", function (v) { item.rootRepeatSpread = v; }, "nerve root spread, predominantly in parts where there is epidural spread"));
+        }
+        grid.appendChild(field("Symptoms reproduced (specify phase, if relevant)", item.rootSymptoms || "", function (v) { item.rootSymptoms = v; }, "Document the observed response, or leave blank"));
       }
 
       // Preplanned toggles, plus the trigger-point shortcut where it is a frequent pairing.
@@ -3697,6 +3764,7 @@
       var ijCb = document.createElement("input");
       ijCb.type = "checkbox";
       ijCb.checked = item.mixOn && !item.injTouched;
+      if (item.key === "lumbar_root_sequence") ijCb.disabled = true;
       ijCb.addEventListener("change", function () {
         if (ijCb.checked) {
           item.mixOn = true; item.injTouched = false;
@@ -3756,12 +3824,14 @@
           return w;
         }
 
-        if (state.modality === "fluoro") mrow.appendChild(mixNum("Contrast cc", "contrast", "58px"));
+        if (state.modality === "fluoro") mrow.appendChild(mixNum(item.key === "lumbar_root_sequence" ? "Initial contrast cc" : "Contrast cc", "contrast", "58px"));
         mrow.appendChild(mixNum("LA cc", "laVol", "52px"));
         mrow.appendChild(mixSel("Local anesthetic", "la", LA_AGENTS));
-        mrow.appendChild(mixNum("Steroid cc", "stVol", "58px"));
-        mrow.appendChild(mixSel("Steroid", "st", STEROIDS));
-        mrow.appendChild(mixNum("Split between", "split", "52px"));
+        if (item.key !== "lumbar_root_sequence" || item.intent === "epidural_then_root") {
+          mrow.appendChild(mixNum("Steroid cc", "stVol", "58px"));
+          mrow.appendChild(mixSel("Steroid", "st", item.key === "lumbar_root_sequence" ? ["Dexamethasone 10 mg/mL"] : STEROIDS));
+        }
+        if (item.key !== "lumbar_root_sequence") mrow.appendChild(mixNum("Split between", "split", "52px"));
         ijWrap.appendChild(mrow);
 
         var prev = document.createElement("div");
@@ -3874,6 +3944,14 @@
       // with no medial branch levels is a complete procedure, not an unanswered field.
       if (pr.levels && !item.levels.length && !(pr.levelsOptionalIf && pr.levelsOptionalIf(item)))
         missing.push(pr.card + " — levels");
+      if (item.key === "lumbar_root_sequence") {
+        if (item.lat !== "left" && item.lat !== "right") missing.push(pr.card + " — select one side per card");
+        if (item.levels.length !== 1) missing.push(pr.card + " — select exactly one nerve root");
+        ["contrast", "laVol"].concat(item.intent === "epidural_then_root" ? ["stVol"] : []).forEach(function (k) {
+          if (!(Number(mixValue(item, k)) > 0)) missing.push(pr.card + " — positive " + k + " volume required");
+        });
+        if (item.intent === "epidural_then_root" && !(Number(item.repeatContrast === undefined ? "1" : item.repeatContrast) > 0)) missing.push(pr.card + " — positive repeat contrast volume required");
+      }
       if (pr.choice && !item[pr.choice.key]) {
         var needed = !pr.choice.onlyIfLumbar ||
           (item.levels || []).some(function (l) { return l !== "S1"; });

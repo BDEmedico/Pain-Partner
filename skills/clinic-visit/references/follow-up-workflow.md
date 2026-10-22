@@ -5,6 +5,8 @@ description: "Victoria's follow-up visit note: take her previous Accuro note plu
 
 # Follow-up visit (Part I: updated note, Part II: review)
 
+Current shared preferences and SKILL.md take precedence over legacy macros below. Read the October 21, 2026 refinements before drafting; use the HTML for procedure defaults.
+
 Inputs: (1) the previous note for this patient (a consult note or an earlier follow-up note), pasted; (2) her Wispr Flow dictation of the follow-up encounter. Part I is the finished follow-up note she pastes into Accuro: the previous note carried forward, with the follow-up worked in. Part II reviews it as a second set of eyes.
 
 If she pastes a finished follow-up note with no dictation and asks for review, run Part II only. If only the previous note arrives, wait for the dictation (one line: "Ready for the follow-up dictation."). If the mode is unclear, ask in one line.
@@ -24,18 +26,18 @@ A follow-up is a short visit. Document what happened and what was decided. Never
 5. Horizontal rule, then `## REVIEW (not part of the note, do not paste into Accuro)`, then Part II.
 6. More material arrives: reissue the whole note and re-run Part II.
 
-Salutation, signature and CC are Accuro's. Never write them.
+Do not add a salutation or invented signature. Preserve supplied CC recipients when requested or included in the source note.
 
 ## What changes and what carries forward
 
-The previous note is the base. Keep its section headings and order. Four sections are updated every time; the rest carry forward.
+The previous note is the base. Apply the current section order: PAIN HISTORY, INTERIM HISTORY, previous/current examination, IMPRESSION, PROCEDURE NOTE if applicable, then PLAN. Update pertinent background rather than copying stale facts.
 
 ### Updated every time
 
-1. **Opening line.** Replace the consult opener with: "I saw this pleasant [age]-year-old [male/female] in follow-up for [presenting problem]." Age from the previous note unless dictated otherwise.
+1. **Opening line.** Use "I had the pleasure of following up with this pleasant [age]-year-old [male/female] with [chief complaint]." Add a separate sentence stating modality and actual visit purpose.
 2. **PREVIOUS PAIN PROCEDURES.** Append each procedure done since the last note, chronological, one line each: date, modality, procedure, side/level, operator if not her, then response in brackets. Response format: `(% relief, duration, functional gain)`, e.g. `Oct 2026 US guided Rt SASD bursa + suprascapular nerve block (70% x 6 wk, back to overhead work)`. For a diagnostic local-anesthetic block, response is relief within the anesthetic window, e.g. `(85% at 1-6 h, pain diary)`. Missing response elements she has, and that the impression or plan depends on, get pick-lists: `[null|<30%|30-50%|50-80%|>80%]`, `[null|___ wk|ongoing]`. Each procedure listed once; earlier entries stay as written.
-3. **INTERIM HISTORY** (new section, placed directly after the existing HISTORY OF PRESENTING ILLNESS). Prose, in this order: response to what was done since last visit (procedure response written in words once here, numbers sit in PREVIOUS PAIN PROCEDURES; don't restate both in full), current pain and function versus last visit, progress on the non-procedural plan (physio/HEP, medication changes and tolerance, self-management), new or changed symptoms, red flags if dictated or pertinent. Every sentence must bear on today's impression or plan.
-4. **EXAM.** If she dictated an exam, it replaces the previous exam entirely. Same format as the consult note: bulleted, one line per system, `- System: finding.`, Rt/Lt leading, `negative, [tests]` / `positive, [side], [tests]`, back order: General/gait, Lumbar, Palpation, Motor, Reflexes, Sensation, Neural tension, SI, Hip, GT, Deep gluteal. If no exam was dictated, never carry the old exam forward as today's: the section becomes `[null|Not examined today.|Virtual follow-up; no physical exam performed.|Focused exam unchanged from previous visit.]`. No motor/sensation defaults at follow-up unless she says "same exam" or dictates them.
+3. **INTERIM HISTORY** (separate section after PAIN HISTORY). Prose, in this order: response to what was done since last visit (procedure response written in words once here, numbers sit in PREVIOUS PAIN PROCEDURES; don't restate both in full), current pain and function versus last visit, progress on the non-procedural plan (physio/HEP, medication changes and tolerance, self-management), new or changed symptoms, red flags if dictated or pertinent. Keep today's procedural findings and immediate response out of INTERIM HISTORY; put them in a separate paragraph of IMPRESSION and in PROCEDURE NOTE. Every sentence must bear on today's impression or plan.
+4. **EXAM.** Preserve useful historical findings under Previous EXAM with the date when known. Document newly supplied focused findings separately under EXAM; do not imply a full examination was repeated. Use EXAM virtual follow up for a telephone encounter. Read physical-exam.md for supported regional notation and explicitly invoked normal macros.
 5. **IMPRESSION.** Rewritten from her dictation. Order: (1) "[age]-year-old [sex] with..." each complaint and its generator, updated by what the interim response showed (e.g. diagnostic block positive supports facet-mediated pain; no response to SASD argues against bursal source); (2) the response read against the stated target (>50% relief and/or functional gain lasting >=3 months for therapeutic; her stated threshold for diagnostic); (3) next step and why, including why repeat vs escalate vs change target vs stop; (4) contingency she stated; (5) multimodal frame: what continues and what the procedure is meant to enable. Address the referrer as "you" where about them. Reasoning only from her dictation; where it's thinner than what she clearly concluded, offer a pick-list or raise it in Part II.
 6. **PLAN.** Replaced, not appended. Bullets, modality-prefixed: `- US guided: ...`, `- Fluoro: ...`, then non-procedural items, then follow-up (default "Follow up at procedure." when one is booked). Items that are done or abandoned drop off.
 
@@ -43,10 +45,10 @@ Whenever a new or repeat procedure is planned, the consent and counselling macro
 
 ### Carried forward
 
-MEDICAL HISTORY through INVESTIGATIONS and the original HISTORY OF PRESENTING ILLNESS carry forward unchanged except:
+Carry forward pertinent background. Convert the initial HPI to PAIN HISTORY, summarizing onset, distribution, provoking/relieving factors and baseline functional limitation. Apply these updates:
 - **Dictated changes go in:** a medication started, stopped or changed (dose), new imaging or labs, new diagnosis, allergy. Update the section and make sure the plan and interim history agree with it. Never drop a drug silently; if the dictation implies a stop but doesn't say it, pick-list it.
 - **Finesse:** fix typos, dictation artifacts, contradictions and duplication. Don't rephrase sound text for style.
-- **Anti-snowball rule:** if the previous note was itself a follow-up, its INTERIM HISTORY folds into the end of the HISTORY OF PRESENTING ILLNESS as one or two condensed sentences (what was tried, response, what changed), and the procedure detail lives only in PREVIOUS PAIN PROCEDURES. Only today's INTERIM HISTORY stays as its own section. Report the condensing in Judgment calls.
+- **Anti-snowball rule:** if the previous note was itself a follow-up, its INTERIM HISTORY may be condensed into PAIN HISTORY where relevant as one or two condensed sentences (what was tried, response, what changed), and the procedure detail lives only in PREVIOUS PAIN PROCEDURES. Only today's INTERIM HISTORY stays as its own section. Report the condensing in Judgment calls.
 - If she asks to rewrite or condense any carried section, return the whole section.
 
 ## Pick-lists

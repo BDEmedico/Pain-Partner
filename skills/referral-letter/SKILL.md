@@ -88,3 +88,6 @@ Victoria requires these workflows and approved preferences to be available from 
 When Victoria authorizes a reusable skill/preference change, preserve the other bundled skills, update the existing cloud plugin as part of the same task, and verify the new version is available. Do not create duplicate plugins or public listings. Do not report a change as saved account-wide without verification. If cloud update access is unavailable, say clearly that the change is local/pending cloud publication and identify the precise blocker. Do not imply built-in automatic local/cloud synchronization.
 
 For cloud work, use the installed plugin's skills; access to the work computer must not be a prerequisite. Clinical note edits alone do not trigger skill changes. This standing preference authorizes maintenance of this personal plugin when a skill change has been authorized, not transmission of patient charts or public sharing.
+
+## Response updates to referring colleagues
+- Focus on the procedures, observed response, relevant adverse events and next steps. Omit obvious or preachy attribution caveats unless they materially affect a clinical decision. Do not routinely append "combined treatment limits attribution to a single level." Preserve necessary uncertainty without explaining routine concepts to the recipient.
