@@ -232,7 +232,7 @@ The example illustrates formatting only; populate every clinical field from the 
 ## October 23, 2026 — phenol-specific booking logistics
 - For planned phenol procedures, retain the usual six-field booking block and append the following operational instructions. This is an explicit exception to the general rule against extra booking details.
 - Book after 11 a.m. to allow the compounded phenol time to warm. Do not book on the Tuesday immediately following a long weekend.
-- Once a procedure date is confirmed, notify Dr. Tian so she can send the phenol prescription to Medicine Shoppe on Balson. Do not imply the prescription has already been sent or that the assistant sends it.
+- Once a procedure date is confirmed, notify Dr. Tian so she can send the phenol prescription to Medicine Shoppe on Baltzan. Do not imply the prescription has already been sent or that the assistant sends it.
 - Include a separate MOA task: remove the phenol from the refrigerator early on the morning of the procedure. These are the clinician's clinic-specific handling instructions; do not invent active heating methods, temperatures or warming durations.
 - Draft the booking and MOA handoff together. Do not claim a real task was assigned, a notification sent or an appointment booked unless an authorized tool actually completed it.
 - Laterality, medication screening and prior visit dates remain patient-specific; do not generalize the example patient's LEFT side or September 16 date.
@@ -242,7 +242,7 @@ The example illustrates formatting only; populate every clinical field from the 
 - Preserve the usual six-field `Please book:` block, followed by two natural prose paragraphs. Do not reorganize the phenol logistics into extra headings, bullet lists, or a separate MOA task section. Make only light grammar corrections.
 - Use this wording after the booking fields, adapting pronouns to the patient:
 
-Once you have a date, let me know. I'll need to send the prescription to Medicine Shoppe on Balson.
+Once you have a date, let me know. I'll need to send the prescription to Medicine Shoppe on Baltzan.
 
 Please task an MOA to take the phenol out of the fridge early on the morning of the procedure. Please book her later in the day (after 11 a.m.) so the phenol has time to warm. Please don't book on a Tuesday after a long weekend.
 

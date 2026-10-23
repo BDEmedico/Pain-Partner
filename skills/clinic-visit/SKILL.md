@@ -78,13 +78,13 @@ Preserve clinician-confirmed decisions and name explicit alternative targets wit
 
 
 ## Phenol booking exception
-For phenol procedures, append the shared preferences' special logistics after the six-field booking block: appointment after 11 a.m.; no Tuesday immediately after a long weekend; notify Dr. Tian once the date is set so she can send the prescription to Medicine Shoppe on Balson. Include the MOA request in the prose paragraph below, without a separate task heading or bullets. These requested logistics override the default omission of additional booking details. Drafting is not actual task assignment or prescription transmission.
+For phenol procedures, append the shared preferences' special logistics after the six-field booking block: appointment after 11 a.m.; no Tuesday immediately after a long weekend; notify Dr. Tian once the date is set so she can send the prescription to Medicine Shoppe on Baltzan. Include the MOA request in the prose paragraph below, without a separate task heading or bullets. These requested logistics override the default omission of additional booking details. Drafting is not actual task assignment or prescription transmission.
 
 
 ### Approved phenol handoff wording
 After the standard six-field booking block, append these two paragraphs (adapt patient pronouns only as needed):
 
-Once you have a date, let me know. I'll need to send the prescription to Medicine Shoppe on Balson.
+Once you have a date, let me know. I'll need to send the prescription to Medicine Shoppe on Baltzan.
 
 Please task an MOA to take the phenol out of the fridge early on the morning of the procedure. Please book her later in the day (after 11 a.m.) so the phenol has time to warm. Please don't book on a Tuesday after a long weekend.
 
