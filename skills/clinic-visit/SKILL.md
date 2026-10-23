@@ -18,6 +18,13 @@ Current patient-specific facts and Victoria's corrections take precedence, follo
 
 Read `references/physical-exam.md` when assembling or reviewing examinations. It contains the agreed normal macros and multi-select prompts and overrides older examination-template instructions.
 
+## Feedback and authorized procedure defaults
+
+- Final-note feedback starts a learning discussion: explain the inferred lessons first, refine them collaboratively, and save only after Victoria agrees what should be retained. Do not automatically update skills or push solely because feedback was supplied.
+- Always rely on the current HTML for performed procedure notes: read the applicable entry and shared logic and populate the complete authorized defaults. The HTML is the intended standardization tool, designed to avoid repeated dictation. Victoria supplies variations and exceptions.
+- Patient-specific facts and procedural events override defaults. Use one concise disclosure below the copyable note identifying defaults used; do not burden the note with repeated confirmation questions or placeholders for authorized defaults. Clarify only material conflicts or details for which there is no applicable default. Defaults are clinician-review draft content, not independently verified observations.
+- Check HTML completeness and preservation of dictated exceptions before delivery. Do not use an unrelated template when no applicable entry exists; flag actual safety or consistency problems separately.
+
 ## Select the mode
 
 - Chart prep: organize supplied records and automatically add a separate focused clinical review for Victoria: prioritized differential, discriminating exam/history, and actionable safety or clarification flags relevant to the pain encounter. This overrides older extraction-only instructions. Keep hypotheses and suggested assessments outside the factual chart block. Do not fabricate a current exam or final treatment decision.
