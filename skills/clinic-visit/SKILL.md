@@ -30,6 +30,9 @@ Read `references/physical-exam.md` when assembling or reviewing examinations. It
 
 ## Drafting
 
+- Initial telephone consultations: after the patient-specific thank-you opening, use "This consultation was conducted by telephone to improve patient access, assess symptoms and discuss interventional options." Always retain "to improve patient access" for this visit type. Follow-ups retain their own modality/purpose opening.
+- CURRENT MEDICATIONS must be an inline paragraph after the colon, not a vertical bullet list, unless explicitly requested. Retain supported doses/frequencies; keep unresolved discrepancies in the separate review or a focused bracketed choice rather than silently selecting a conflicting dose.
+
 - Accept Heidi-generated notes or raw transcripts plus Victoria's brief final summary. Clearly distinguish these sources, preserve her corrections and decisions, and flag material discrepancies. A generated note is not a verified transcript and generic AI normal-exam prose does not invoke her normal macro. Follow the shared preferences for relevance-focused pre-chart review and transcript handling.
 - Keep patients separate. Use supplied or authorized sources. Drafting implies no EHR access, orders, booking, prescription transmission or letter sending.
 - Use a surname/status line outside the note. Do not add unnecessary identifiers. Missing information goes in Review or a focused pre-populated `[null|option|option]` field, not narrative commentary about the drafting process.
@@ -47,6 +50,14 @@ Read `references/physical-exam.md` when assembling or reviewing examinations. It
 - Preserve Victoria's own virtual response review when dictated, followed by a reminder to book with the referring physician. Do not substitute automatic discharge or referring-provider-only follow-up from older reference macros.
 - A definite new referral plan triggers a companion letter using `referral-letter`. Do not send it. Historical or conditional referrals do not trigger new correspondence.
 
+## Final consistency check
+
+- Apply final-note refinements: use `Referral exam` for the referrer's historical examination, compact XR labels, and a concise actionable plan. Avoid duplicating HPI negatives in the impression or inserting unsolicited appreciation paragraphs. Confirmed procedure terminology and laterality in the clinician's final edits override earlier ambiguous dictation; preserve those facts without turning patient-specific choices into defaults.
+
+- Keep the copyable note free of assistant/editorial comments such as "current use requires reconciliation". Place unresolved medication use and missing information in the review below the note, or use a focused bracketed choice such as `[taking|discontinued]` when an embedded clarification is useful. Never imply plain text guarantees clickable controls. Preserve clinically material uncertainty without inventing facts.
+- For explicitly supplied normal lower limb findings or invoked shorthand, consistently use `Motor: L2–S1 5/5 bilaterally.` and `Sensation: L2–S1 intact to light touch bilaterally.` Apply Victoria's explicit corrections before transcript wording, and retain specific abnormalities. Missing or partial findings do not authorize a full normal macro.
+- Before delivering, verify motor, sensation and reflexes against the supplied examination, preserve gait/function and abnormal exceptions, and move drafting comments outside the copyable note.
+
 ## Review and billing
 
 Check history, response, exam, imaging, impression and plan for agreement. Flag material mismatches outside the letter; suggest differential diagnoses or missing clinician-known facts where useful without inventing support. Apply calibrated urgency according to progression, severity and evidence. Maximum five meaningful findings; no manufactured issues.
@@ -57,4 +68,24 @@ On applicable procedure encounters, append the shared preferences' 5D billing sc
 
 Provide one complete plain-text note block, or complete affected sections for review corrections. Review, billing checks and default disclosures stay outside it.
 
+For phone visits with a definite procedure-booking decision, append the separate six-field booking block defined in shared preferences: Procedure, Duration, Anticoagulation, Antiplatelets, Steroid and Ativan. Default duration is 30 minutes; absent Ativan preference is "please ask patient". Begin with `Please book:` and a blank line; omit an MOA task heading, contact information, timing and additional details. Format Procedure with guidance first, then uppercase confirmed laterality and the abbreviated procedure/target, e.g. `Fluoro, RIGHT S1 TFESI`; this is a formatting example, not a target default. Use `Duration: 30 minutes`, not `Booking duration:`. Use polite `please confirm current status` for historical screening and keep Steroid to Yes/No when established. Follow the latest shared booking wording; never infer negative antiplatelet status from a screen excluding ASA. Preserve documented medication management (including ASA under antiplatelets) without inventing holds. Do not generate a booking task for merely conditional treatment or send it automatically.
+
 GitHub updates do not publish the installed cloud plugin. Update the existing personal plugin when publishing tools exist, preserving referral capability and the HTML resource. Otherwise prepare a portable bundle and clearly state the missing publication capability; do not claim account-wide availability.
+
+
+## Booking quality check
+Preserve clinician-confirmed decisions and name explicit alternative targets with their agreed decision timing. Separate deliberate day-of-procedure localization from genuinely missing facts. Avoid repetitive confirmation clauses after the clinician has settled screening or injectate. Use `Ativan: Please ask` for an unknown preference; this is not medication authorization, and explicit restrictions still apply. Keep clarification flags outside the scheduling block unless needed to schedule. Apply shared preferences for calibrated uncertainty and concrete functional outcomes.
+
+
+## Phenol booking exception
+For phenol procedures, append the shared preferences' special logistics after the six-field booking block: appointment after 11 a.m.; no Tuesday immediately after a long weekend; notify Dr. Tian once the date is set so she can send the prescription to Medicine Shoppe on Balson. Include the MOA request in the prose paragraph below, without a separate task heading or bullets. These requested logistics override the default omission of additional booking details. Drafting is not actual task assignment or prescription transmission.
+
+
+### Approved phenol handoff wording
+After the standard six-field booking block, append these two paragraphs (adapt patient pronouns only as needed):
+
+Once you have a date, let me know. I'll need to send the prescription to Medicine Shoppe on Balson.
+
+Please task an MOA to take the phenol out of the fridge early on the morning of the procedure. Please book her later in the day (after 11 a.m.) so the phenol has time to warm. Please don't book on a Tuesday after a long weekend.
+
+Preserve this natural prose and direct first-person wording. Do not add logistics headings or convert it to a list. This supersedes earlier separate-task formatting.

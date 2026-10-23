@@ -149,3 +149,101 @@ This explicit user preference supersedes earlier instructions requiring individu
 
 ## Colleague correspondence — concise clinical updates
 - Omit obvious or preachy interpretive caveats, such as "combined treatment limits attribution to a single level," unless the limitation materially affects a clinical decision. Focus on what was done, the observed response, relevant adverse events and next steps. Preserve clinically necessary uncertainty without teaching the recipient routine concepts.
+
+## Phone-visit procedure booking handoff — October 22, 2026
+- When a phone visit ends with a definite decision to arrange a procedure (for example, "we will arrange" or "our office will contact"), append a separate copyable booking block after the clinical note. Do not trigger for a merely possible procedure, a completed procedure, or a routine follow-up appointment without procedure booking.
+- Use exactly the six fields below, without an "MOA BOOKING TASK" heading, patient/contact fields, timing or additional-details fields:
+
+```text
+Procedure: [Procedure, side, levels and guidance]
+Booking duration: 30 minutes
+Anticoagulation: [Medication and documented plan / none / not confirmed]
+Antiplatelets: [Medication and documented plan / none / not confirmed]
+Steroid: [Yes / no / not confirmed]
+Ativan: [Requested / declined / please ask patient]
+```
+
+- Populate the fields from the final plan and patient-specific record; the brackets above describe alternatives rather than literal output. Use 30 minutes unless a different duration is explicitly supplied. Keep side, levels and guidance faithful to the booking decision.
+- Include ASA under Antiplatelets. Record only documented interruption/restart instructions; do not infer a hold from drug use or a procedure template. If a medication is known but its management plan is missing, retain the medication and state that the plan is not confirmed. Do not turn missing medication information into "none".
+- Steroid reflects the agreed procedure/injectate when established; otherwise use "not confirmed". For Ativan, use "please ask patient" when preference is absent, rather than "not discussed". This is a request to establish preference, not authorization to prescribe or administer medication.
+- Keep the booking block separate from the clinical note. Generating it does not send a message, create an external task or book an appointment.
+
+
+## October 22, 2026 — clean copyable notes and consistent neurological examination
+- Keep assistant/editorial comments out of the copyable clinical note. Do not write phrases such as "current use requires reconciliation" or "requires confirmation" as drafting commentary. Put unresolved medication use, missing facts and source discrepancies in the concise review below the note. Do not conceal clinically material uncertainty or invent a resolved fact.
+- When an embedded clarification is useful, use a focused square-bracket choice such as `[taking|discontinued]`. Do not promise that plain-text choices are clickable; that depends on the destination editor.
+- When Victoria explicitly supplies a normal lower limb examination or invokes the normal shorthand, consistently render motor as `L2–S1 5/5 bilaterally.` and sensation as `L2–S1 intact to light touch bilaterally.` Specific abnormal findings override the corresponding normal statement. Her explicit corrections take precedence over the transcript.
+- Do not expand a partial examination into untested roots or silently assign normal findings when the examination is missing or ambiguous. Flag material uncertainty below the note. Preserve separately supplied gait/function and reflex findings, including reduced patellar reflexes or absent Achilles reflexes.
+- Before delivery, check motor, sensation and reflexes for consistent formatting and evidentiary support; preserve all explicit exceptions; remove drafting comments from the copyable text.
+
+
+## October 22, 2026 — booking handoff wording refinement
+- Start the separate phone-visit booking block with `Please book:` followed by a blank line. This supersedes the earlier instruction to omit all heading text; do not use `MOA BOOKING TASK`.
+- Retain the six fields: Procedure, Booking duration, Anticoagulation, Antiplatelets, Steroid, Ativan. Default booking duration remains 30 minutes.
+- Make confirmed procedure laterality conspicuous with uppercase `LEFT`, `RIGHT` or `BILATERAL`. Preserve an explicitly agreed alternative such as `Possible lumbar medial branch blocks instead if clinically indicated.` Do not add unnecessary technical detail or infer levels or laterality.
+- For historical negative anticoagulation screening, use `None reported at [visit date] visit; please confirm current status.` For a supported negative antiplatelet history, use `No; please confirm current status.` Do not turn unknown antiplatelet status or a screen excluding ASA into an unqualified `No` unless Victoria supplies the correction. Retain known drugs and actual management plans.
+- Keep steroid wording brief: `Steroid: No` or `Steroid: Yes` when established; no redundant explanation. Use `Ativan: please ask patient` when no preference is supplied.
+- Patient-specific corrections (such as LEFT in an individual booking) apply only to that patient, not as universal defaults.
+
+
+## October 23, 2026 — compact booking procedure and duration fields
+- In the booking handoff, format the procedure as guidance first, then uppercase confirmed laterality, then the abbreviated procedure/target: `Procedure: Fluoro, RIGHT S1 TFESI`. Use the actual guidance, side and target for each patient; RIGHT S1 is an example, not a default. Avoid repeating `under fluoroscopic guidance` at the end.
+- Use `Duration: 30 minutes` instead of `Booking duration: 30 minutes`. Keep 30 minutes as the default unless a different duration is supplied.
+- Preserve `Please book:` followed by a blank line and the remaining fields: Anticoagulation, Antiplatelets, Steroid, Ativan. Preserve documented medication plans and polite status-confirmation wording.
+- The latest example is:
+
+```text
+Please book:
+
+Procedure: Fluoro, RIGHT S1 TFESI
+Duration: 30 minutes
+Anticoagulation: None reported at [previous visit] visit; please confirm current status.
+Antiplatelets: Please confirm current status, including ASA.
+Steroid: Yes
+Ativan: please ask patient
+```
+
+The example illustrates formatting only; populate every clinical field from the current case.
+
+
+## October 23, 2026 — initial telephone consultations and inline medications
+- For initial consultations conducted by telephone, explicitly state the access rationale in the second opening sentence: "This consultation was conducted by telephone to improve patient access, assess symptoms and discuss interventional options." The phrase "to improve patient access" is essential. Precede it with the usual patient-specific "Thank you for referring this pleasant [age]-year-old [female/male] with [chief complaint]." Do not apply this initial-consult opening indiscriminately to follow-ups.
+- Format CURRENT MEDICATIONS as one inline paragraph following `CURRENT MEDICATIONS:`, with medications separated by commas or semicolons. Preserve supported doses and frequencies. Do not switch to a vertical bulleted medication list unless explicitly requested.
+- Keep medication discrepancies and editorial clarification outside the copyable note in the concise review, or use a focused bracketed choice when needed; do not silently resolve conflicting doses.
+
+
+## October 23, 2026 — final-note feedback
+- Label historical examination findings supplied by the referring clinician `Referral exam`; reserve `Previous EXAM` for prior examinations from this clinic. Keep today's telephone EXAM separate.
+- Prefer compact investigation labels such as `Thoracolumbar XR`, `Lumbar XR` and `Hip/pelvis XR`. Keep the report summary factual; avoid inserting additional correspondence into the investigation summary. Preserve clinically material differences between source interpretations where relevant to the assessment.
+- Keep IMPRESSION focused on the reasoned assessment and procedural discussion. Avoid repeating HPI negatives and functional limitations unnecessarily or adding routine appreciation paragraphs unless requested. Warmth should be natural and proportional to the user's instruction.
+- Keep PLAN compact, generally one actionable procedure line where sufficient. Use specific confirmed procedure names (e.g. IA facet injections, ESPs) when the clinician supplies them. Do not infer those procedures from ambiguous descriptions or generalize a patient's targets to future patients.
+- Use final clinician edits as the authoritative patient-specific procedure clarification. Keep confirmed laterality consistent: if an adjunct is explicitly bilateral, any unresolved laterality applies only to other targets, not to that confirmed adjunct.
+
+
+## October 23, 2026 — actionable booking and calibrated uncertainty
+- Distinguish clinician-confirmed decisions, details intentionally deferred until procedure day, and genuinely missing information. Preserve confirmed decisions; do not repeatedly request confirmation of facts the clinician has explicitly settled.
+- When alternative targets are specified, name them and the agreed time of selection (for example, LEFT L5 vs S1 TFESI; nerve root level to be confirmed on day of procedure). This is a formatting example, not a default target. Do not replace useful alternatives with a vague unspecified level.
+- Booking is a concise scheduling handoff. Use confirmed screening and steroid details directly. Date-attributed negative anticoagulation history may stand without an added confirmation clause when this is the clinician's final wording. Do not infer negative screening from missing information.
+- Use `Ativan: Please ask` when preference is unknown. Do not replace this preference question with `No sedation planned` solely because the procedure discussion required the patient to remain communicative. Asking about preference does not authorize medication or override the clinician's sedation plan; retain explicit contraindications or restrictions and flag an actual conflict separately.
+- Put genuine unresolved clinical questions outside the booking unless scheduling depends on the answer. Preserve explicitly deferred decisions without treating them as blockers.
+- Preserve confirmed history, concrete functional gains, and the clinician's reasoned rationale for intervention despite inconclusive investigations. For electrodiagnostic uncertainty, prefer precise wording such as `A negative EMG does not exclude radiculopathy` over absolute sensitivity/specificity claims.
+
+
+## October 23, 2026 — phenol-specific booking logistics
+- For planned phenol procedures, retain the usual six-field booking block and append the following operational instructions. This is an explicit exception to the general rule against extra booking details.
+- Book after 11 a.m. to allow the compounded phenol time to warm. Do not book on the Tuesday immediately following a long weekend.
+- Once a procedure date is confirmed, notify Dr. Tian so she can send the phenol prescription to Medicine Shoppe on Balson. Do not imply the prescription has already been sent or that the assistant sends it.
+- Include a separate MOA task: remove the phenol from the refrigerator early on the morning of the procedure. These are the clinician's clinic-specific handling instructions; do not invent active heating methods, temperatures or warming durations.
+- Draft the booking and MOA handoff together. Do not claim a real task was assigned, a notification sent or an appointment booked unless an authorized tool actually completed it.
+- Laterality, medication screening and prior visit dates remain patient-specific; do not generalize the example patient's LEFT side or September 16 date.
+
+
+## October 23, 2026 — approved phenol handoff prose
+- Preserve the usual six-field `Please book:` block, followed by two natural prose paragraphs. Do not reorganize the phenol logistics into extra headings, bullet lists, or a separate MOA task section. Make only light grammar corrections.
+- Use this wording after the booking fields, adapting pronouns to the patient:
+
+Once you have a date, let me know. I'll need to send the prescription to Medicine Shoppe on Balson.
+
+Please task an MOA to take the phenol out of the fridge early on the morning of the procedure. Please book her later in the day (after 11 a.m.) so the phenol has time to warm. Please don't book on a Tuesday after a long weekend.
+
+- The MOA request remains embedded in this paragraph, not a separately headed task. This formatting supersedes earlier wording calling for a separate MOA task. Preserve all operational requirements and distinguish drafted instructions from actual task assignment.

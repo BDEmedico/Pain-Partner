@@ -13,6 +13,10 @@
 - Use `EXAM virtual follow up` for phone/virtual follow-ups. Preserve historical findings under `Previous EXAM`, with source/date where known. Do not label an in-person follow-up virtual or carry previous findings forward as current.
 - Check the whole note for clinical consistency. A normal macro does not establish a diagnosis. Keep material questions outside the copyable note, with focused prompts where helpful.
 
+## Output consistency
+
+For explicitly supplied normal lower limb findings or invoked shorthand, always use the motor and sensory lines below. Victoria's explicit corrections override the transcript, and specific abnormalities override only their corresponding normal findings. Do not expand partial testing to untested roots or assume missing findings are normal. Check motor, sensation and reflexes before delivery. Place unresolved examination questions below the note unless a focused square-bracket choice is needed in the draft.
+
 ## Normal back exam
 
 ```text
