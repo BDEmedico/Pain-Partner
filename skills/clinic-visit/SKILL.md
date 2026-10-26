@@ -59,6 +59,10 @@ Read `references/physical-exam.md` when assembling or reviewing examinations. It
 
 ## Final consistency check
 
+- Apply the approved concise-final-note rules in shared preferences: direct wording for accepted medical history (for example, `Diabetes`, not `Diabetes reported on intake`), relevant labs/imaging, a sufficiently broad opening and a reasoned target choice in the impression. Keep source attribution only when clinically meaningful or needed to preserve uncertainty.
+- Propagate final patient-specific changes to procedure intent, alternative targets and pain-diary plans across the note and booking without turning them into general treatment defaults. Keep the clinical plan compact and the multi-day MOA handoff explicit.
+- Avoid a redundant no-examination section when telephone modality is already clear; preserve clearly labelled historical examinations. Use simple supported blood-thinner wording without converting unknown screening into negative findings. Preserve historical/current red-flag distinctions and provisional diagnoses; never suggest waiting for new bladder dysfunction or saddle numbness to persist before urgent assessment.
+
 - Apply final-note refinements: use `Referral exam` for the referrer's historical examination, compact XR labels, and a concise actionable plan. Avoid duplicating HPI negatives in the impression or inserting unsolicited appreciation paragraphs. Confirmed procedure terminology and laterality in the clinician's final edits override earlier ambiguous dictation; preserve those facts without turning patient-specific choices into defaults.
 
 - Keep the copyable note free of assistant/editorial comments such as "current use requires reconciliation". Place unresolved medication use and missing information in the review below the note, or use a focused bracketed choice such as `[taking|discontinued]` when an embedded clarification is useful. Never imply plain text guarantees clickable controls. Preserve clinically material uncertainty without inventing facts.
@@ -96,3 +100,7 @@ Once you have a date, let me know. I'll need to send the prescription to Medicin
 Please task an MOA to take the phenol out of the fridge early on the morning of the procedure. Please book her later in the day (after 11 a.m.) so the phenol has time to warm. Please don't book on a Tuesday after a long weekend.
 
 Preserve this natural prose and direct first-person wording. Do not add logistics headings or convert it to a list. This supersedes earlier separate-task formatting.
+
+
+## Explicit multi-day booking handoffs
+For planned back-to-back appointments, list `Procedure:` followed by separate `- Day 1:` and `- Day 2:` procedure lines with confirmed guidance, side and level, and give duration per appointment. Do not day-number routine single appointments. Preserve confirmed day-two decisions and simple optional additions (`Possible ...`) without adding `if clinically indicated/applicable` for the MOA to interpret. When negative use is established, use `Anticoagulation: None, please confirm.` and `Antiplatelets: None, please confirm.` Known drugs and unresolved histories must not be overwritten with None. Retain short practical logistics below the fields, including the local stay and agreed surgeon contact. Follow the October 26 shared preferences; patient-specific targets are never universal defaults.
