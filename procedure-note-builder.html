@@ -701,9 +701,14 @@
   var LA_AGENTS = ["lidocaine 1%", "lidocaine 2%", "bupivacaine 0.125%", "bupivacaine 0.25%",
                    "bupivacaine 0.5%", "normal saline", "preservative-free normal saline",
                    "5% dextrose (D5W)"];
-  var STEROIDS = ["Methylprednisolone 40 mg/mL", "Methylprednisolone 80 mg/mL",
+  // Clinician-authorized steroid defaults. Depo-Medrol is methylprednisolone acetate.
+  // These select the agent/concentration only; blank steroid volumes stay steroid-free.
+  // Explicit mixture/manual overrides always take precedence.
+  var NON_EPIDURAL_STEROID = "Depo-Medrol 40 mg/mL";
+  var EPIDURAL_STEROID = "Dexamethasone 10 mg/mL";
+  var STEROIDS = [NON_EPIDURAL_STEROID, "Methylprednisolone 40 mg/mL", "Methylprednisolone 80 mg/mL",
                   "Triamcinolone 40 mg/mL", "Triamcinolone 80 mg/mL",
-                  "Dexamethasone 10 mg/mL", "Dexamethasone 8 mg", ""];
+                  EPIDURAL_STEROID, "Dexamethasone 8 mg", ""];
 
   // Last dose defaults to three days before the list: a Tuesday list holds from Saturday,
   // a Wednesday list from Sunday. Overridable once set.
@@ -872,7 +877,7 @@
       contrast: cfg.contrast === undefined ? "" : scale(cfg.contrast, mult),
       la: cfg.la || "lidocaine 1%",
       laVol: cfg.laVol === undefined || cfg.laVol === "" ? "" : scale(cfg.laVol, mult),
-      st: cfg.st || "Methylprednisolone 40 mg/mL",
+      st: cfg.st || NON_EPIDURAL_STEROID,
       stVol: cfg.stVol === undefined || cfg.stVol === "" ? "" : scale(cfg.stVol, mult),
       split: sites
     };
@@ -881,7 +886,7 @@
   function mixDefault(item) {
     var p = PROCS[item.key];
     var base = { contrast: "", la: "lidocaine 1%", laVol: "",
-                 st: "Methylprednisolone 40 mg/mL", stVol: "", split: jointCount(item) };
+                 st: NON_EPIDURAL_STEROID, stVol: "", split: jointCount(item) };
     var d = p.mixFn ? p.mixFn(item) : (p.mix || {});
     MIX_FIELDS.forEach(function (k) {
       if (d.hasOwnProperty(k)) base[k] = d[k];
@@ -987,9 +992,22 @@
     };
   }
 
-  // Fluoroscopic TON default: 0.2cc at each of three sites; 0.6cc per side.
+  // Cervical diagnostic blocks are a fluoroscopy-only pathway. An old checkbox
+  // value must not turn a US therapeutic block into a diagnostic block.
+  function isCervicalBlock(key) { return key === "ton" || key === "c_mbb"; }
+  function diagnosticSelected(item) {
+    if (isCervicalBlock(item.key)) {
+      if (state.modality !== "fluoro") return false;
+      // A card created under US has no Fluoro choice yet; retain that pathway's
+      // diagnostic default while preserving an explicitly selected false value.
+      if (!item.toggles || item.toggles.diagnostic === undefined) return true;
+    }
+    return !!(item.toggles && item.toggles.diagnostic);
+  }
+  // Fluoroscopic diagnostic TON: 0.2cc at three sites, 0.6cc per side.
+  // US therapeutic TON: one target, 1cc per side.
   function tonVol(item) {
-    var base = state.modality === "fluoro" ? ((item.toggles && item.toggles.diagnostic) ? 0.6 : 1) : ((item.toggles && item.toggles.diagnostic) ? 0.5 : 1);
+    var base = diagnosticSelected(item) ? 0.6 : 1;
     return Math.round(base * (item.lat === "bilateral" ? 2 : 1) * 100) / 100;
   }
   function tonText(item, side, lead) {
@@ -1019,7 +1037,7 @@
       levels: { label: "Branches", options: ["Supraorbital", "Infraorbital", "Mental"] },
       inj: "",
       perTarget: true,
-      mixFn: function (item) { return perSide(item, { la: "lidocaine 1%", laVol: 1, st: "Dexamethasone 10 mg/mL", stVol: 1 }); },
+      mixFn: function (item) { return perSide(item, { la: "lidocaine 1%", laVol: 1, st: NON_EPIDURAL_STEROID, stVol: 1 }); },
       body: function (s, n, side) {
   var map = {
     "Supraorbital": "The " + S(side) + "supraorbital notch was identified in the sagittal plane at the medial third of the orbital rim, with the supraorbital artery seen alongside the nerve",
@@ -1042,7 +1060,7 @@
       planClass: "therapeutic",
       localText: "Local anesthetic was infiltrated with a " + LOCAL_NEEDLE + ".",
       inj: "",
-      mix: { la: "lidocaine 1%", laVol: "5", st: "Dexamethasone 10 mg/mL", stVol: "", split: 1 },
+      mix: { la: "lidocaine 1%", laVol: "5", st: NON_EPIDURAL_STEROID, stVol: "", split: 1 },
       mixTextFn: occLine,
       doseFn: occDose,
       text: { us: "The {S}obliquus capitis inferior was {T}identified at the C1-C2 level in the short-axis plane, with the greater occipital nerve seen in the fascial plane between obliquus capitis inferior and semispinalis capitis. A {needle} was advanced in-plane, lateral to medial, to the plane superficial to the muscle, with injectate seen tracking along the nerve. The third occipital nerve was blocked in the same plane over the lateral aspect of the C2-3 zygapophysial joint.", fluoro: "The {S}obliquus capitis inferior was {T}identified at the C1-C2 level in the short-axis plane, with the greater occipital nerve seen in the fascial plane between obliquus capitis inferior and semispinalis capitis. A {needle} was advanced in-plane, lateral to medial, to the plane superficial to the muscle, with injectate seen tracking along the nerve. The third occipital nerve was blocked in the same plane over the lateral aspect of the C2-3 zygapophysial joint.", landmark: "the external occipital protuberance and mastoid process were palpated and the needle inserted at the medial third of that line, medial to the occipital artery pulse, with bone contact confirmed and the needle withdrawn slightly before injection. The third occipital nerve was blocked over the lateral aspect of the C2-3 zygapophysial joint." }
@@ -1057,7 +1075,7 @@
       planClass: "therapeutic",
       localText: "Local anesthetic was infiltrated with a " + LOCAL_NEEDLE + ".",
       inj: "",
-      mix: { la: "lidocaine 1%", laVol: "5", st: "Dexamethasone 10 mg/mL", stVol: "", split: 1 },
+      mix: { la: "lidocaine 1%", laVol: "5", st: NON_EPIDURAL_STEROID, stVol: "", split: 1 },
       mixTextFn: occLine,
       doseFn: occDose,
       text: { us: "The {S}lesser occipital nerve was {T}identified along the posterior border of sternocleidomastoid as it emerged from the cervical plexus and ascended over the muscle. A {needle} was advanced in-plane to the nerve, with injectate seen surrounding it.", fluoro: "The {S}lesser occipital nerve was {T}identified along the posterior border of sternocleidomastoid as it emerged from the cervical plexus and ascended over the muscle. A {needle} was advanced in-plane to the nerve, with injectate seen surrounding it.", landmark: "injected along the posterior border of sternocleidomastoid at the level of the mastoid process." }
@@ -1072,7 +1090,7 @@
       planClass: "therapeutic",
       localText: "Local anesthetic was infiltrated with a " + LOCAL_NEEDLE + ".",
       inj: "",
-      mixFn: function (item) { return perSide(item, { la: "lidocaine 1%", laVol: 2, st: "Dexamethasone 10 mg/mL", stVol: 1 }); },
+      mixFn: function (item) { return perSide(item, { la: "lidocaine 1%", laVol: 2, st: NON_EPIDURAL_STEROID, stVol: 1 }); },
       text: { us: "With the transducer placed in the infrazygomatic coronal plane below the zygomatic arch, the {S}pterygopalatine fossa was {T}identified between the maxilla anteriorly and the lateral pterygoid plate posteriorly, with the maxillary artery seen within the fossa on colour Doppler. A {needle} was advanced in-plane, posterior to anterior, into the fossa with the vascular structures avoided, and injectate was seen filling the fossa.", fluoro: "With the transducer placed in the infrazygomatic coronal plane below the zygomatic arch, the {S}pterygopalatine fossa was {T}identified between the maxilla anteriorly and the lateral pterygoid plate posteriorly, with the maxillary artery seen within the fossa on colour Doppler. A {needle} was advanced in-plane, posterior to anterior, into the fossa with the vascular structures avoided, and injectate was seen filling the fossa.", landmark: "With the transducer placed in the infrazygomatic coronal plane below the zygomatic arch, the {S}pterygopalatine fossa was {T}identified between the maxilla anteriorly and the lateral pterygoid plate posteriorly, with the maxillary artery seen within the fossa on colour Doppler. A {needle} was advanced in-plane, posterior to anterior, into the fossa with the vascular structures avoided, and injectate was seen filling the fossa." }
     },
     tmj: {
@@ -1086,7 +1104,7 @@
       localText: "Local anesthetic was infiltrated with a " + LOCAL_NEEDLE + ".",
       levels: { label: "Targets", options: ["Intra-articular", "Auriculotemporal", "Masseteric + deep temporal"], defaults: ["Intra-articular"] },
       inj: "",
-      mixFn: function (item) { return perSide(item, { la: "lidocaine 1%", laVol: 1, st: "Dexamethasone 10 mg/mL", stVol: 1 }); },
+      mixFn: function (item) { return perSide(item, { la: "lidocaine 1%", laVol: 1, st: NON_EPIDURAL_STEROID, stVol: 1 }); },
       body: function (s, n, side) {
   var out = [];
   var L = s.levels || [];
@@ -1114,7 +1132,7 @@
       planClass: "diagnostic",
       localText: "Local anesthetic was infiltrated with a " + LOCAL_NEEDLE + ".",
       inj: "",
-      mixFn: function (item) { return perSide(item, { la: "lidocaine 1%", laVol: 4, st: "Methylprednisolone 40 mg/mL", stVol: 0.5 }); },
+      mixFn: function (item) { return perSide(item, { la: "lidocaine 1%", laVol: 4, st: NON_EPIDURAL_STEROID, stVol: 0.5 }); },
       text: { us: "The {S}posterior border of sternocleidomastoid was {T}identified and the spinal accessory nerve traced within the posterior cervical triangle, superficial to levator scapulae and deep to the investing layer of the deep cervical fascia. A {needle} was advanced in-plane to the nerve, with injectate seen surrounding it and no spread into the brachial plexus.", fluoro: "The {S}posterior border of sternocleidomastoid was {T}identified and the spinal accessory nerve traced within the posterior cervical triangle, superficial to levator scapulae and deep to the investing layer of the deep cervical fascia. A {needle} was advanced in-plane to the nerve, with injectate seen surrounding it and no spread into the brachial plexus.", landmark: "The {S}posterior border of sternocleidomastoid was {T}identified and the spinal accessory nerve traced within the posterior cervical triangle, superficial to levator scapulae and deep to the investing layer of the deep cervical fascia. A {needle} was advanced in-plane to the nerve, with injectate seen surrounding it and no spread into the brachial plexus." }
     },
     ispb: {
@@ -1129,7 +1147,7 @@
       localText: "Local anesthetic was infiltrated with a " + LOCAL_NEEDLE + ".",
       levels: { label: "Level", options: ["C4", "C5", "C6", "C7"], defaults: ["C6"] },
       inj: "",
-      mixFn: function (item) { return perSide(item, { la: "lidocaine 1%", laVol: 4, st: "Dexamethasone 10 mg/mL", stVol: 1 }); },
+      mixFn: function (item) { return perSide(item, { la: "lidocaine 1%", laVol: 4, st: NON_EPIDURAL_STEROID, stVol: 1 }); },
       text: { us: "The {S}C6 articular pillar was {T}identified in the transverse plane and the transducer moved medially to profile semispinalis capitis and semispinalis cervicis. A {needle} was advanced in-plane, lateral to medial, into the interfascial plane between the two muscles, with injectate seen separating them along the cervical dorsal rami.", fluoro: "The {S}C6 articular pillar was {T}identified in the transverse plane and the transducer moved medially to profile semispinalis capitis and semispinalis cervicis. A {needle} was advanced in-plane, lateral to medial, into the interfascial plane between the two muscles, with injectate seen separating them along the cervical dorsal rami.", landmark: "The {S}C6 articular pillar was {T}identified in the transverse plane and the transducer moved medially to profile semispinalis capitis and semispinalis cervicis. A {needle} was advanced in-plane, lateral to medial, into the interfascial plane between the two muscles, with injectate seen separating them along the cervical dorsal rami." }
     },
     splenius: {
@@ -1143,7 +1161,7 @@
       localDefault: true,
       localText: "Local anesthetic was infiltrated with a " + LOCAL_NEEDLE + ".",
       inj: "",
-      mixFn: function (item) { return perSide(item, { la: "bupivacaine 0.25%", laVol: 10, st: "Methylprednisolone 40 mg/mL", stVol: 1 }); },
+      mixFn: function (item) { return perSide(item, { la: "bupivacaine 0.25%", laVol: 10, st: NON_EPIDURAL_STEROID, stVol: 1 }); },
       text: { us: "The {S}T1 transverse process was {T}identified in the parasagittal plane and the splenius cervicis traced to its insertion. A {needle} was advanced in-plane to the fascial plane deep to splenius cervicis at the T1-T2 level, with injectate seen spreading craniocaudally within the plane.", fluoro: "The {S}T1 transverse process was {T}identified in the parasagittal plane and the splenius cervicis traced to its insertion. A {needle} was advanced in-plane to the fascial plane deep to splenius cervicis at the T1-T2 level, with injectate seen spreading craniocaudally within the plane.", landmark: "The {S}T1 transverse process was {T}identified in the parasagittal plane and the splenius cervicis traced to its insertion. A {needle} was advanced in-plane to the fascial plane deep to splenius cervicis at the T1-T2 level, with injectate seen spreading craniocaudally within the plane." }
     },
     levscap: {
@@ -1156,7 +1174,7 @@
       planClass: "therapeutic",
       localText: "Local anesthetic was infiltrated with a " + LOCAL_NEEDLE + ".",
       inj: "",
-      mixFn: function (item) { return perSide(item, { la: "bupivacaine 0.25%", laVol: 10, st: "Methylprednisolone 40 mg/mL", stVol: 1 }); },
+      mixFn: function (item) { return perSide(item, { la: "bupivacaine 0.25%", laVol: 10, st: NON_EPIDURAL_STEROID, stVol: 1 }); },
       text: { us: "The {S}levator scapulae was {T}identified in the short-axis plane at the level of the C7 transverse process, lying superficial to the posterior scalene. A {needle} was advanced in-plane to the interfascial plane between levator scapulae and posterior scalene, with injectate seen separating the two muscles and no spread toward the brachial plexus.", fluoro: "The {S}levator scapulae was {T}identified in the short-axis plane at the level of the C7 transverse process, lying superficial to the posterior scalene. A {needle} was advanced in-plane to the interfascial plane between levator scapulae and posterior scalene, with injectate seen separating the two muscles and no spread toward the brachial plexus.", landmark: "The {S}levator scapulae was {T}identified in the short-axis plane at the level of the C7 transverse process, lying superficial to the posterior scalene. A {needle} was advanced in-plane to the interfascial plane between levator scapulae and posterior scalene, with injectate seen separating the two muscles and no spread toward the brachial plexus." }
     },
     ton: {
@@ -1167,8 +1185,13 @@
       injLabel: "TON", siteNoun: "sides", planClass: "therapeutic",
       consentAdd: "Given the proximity of the vertebral artery and the spinal cord, the risks of vascular injection and neurological injury were specifically discussed. Unsteadiness and a sensation of imbalance are common after a third occipital nerve block and the patient was counselled on the falls risk.",
       toggles: [{ key: "diagnostic", label: "Diagnostic", on: true, nameOnly: true }],
-      inj: "", mixFn: function (item) { return perSide(item, { la: "bupivacaine 0.5%", laVol: item.toggles && item.toggles.diagnostic ? 0.6 : 1, stVol: "" }); },
-      injLinesFn: function (item) { return ["TON: " + mixValue(item, "laVol") + "cc " + mixValue(item, "la") + (item.lat === "bilateral" ? " split between 3 sites per side" : " split between 3 sites")]; },
+      inj: "", mixFn: function (item) { return perSide(item, { la: "bupivacaine 0.5%", laVol: diagnosticSelected(item) ? 0.6 : 1, stVol: "" }); },
+      injLinesFn: function (item) {
+        var text = "TON: " + mixValue(item, "laVol") + "cc " + mixValue(item, "la");
+        var steroidVolume = String(mixValue(item, "stVol")).trim();
+        if (Number(steroidVolume) > 0) text += " + " + steroidVolume + "cc " + mixValue(item, "st") + " mixture";
+        return [text + (item.lat === "bilateral" ? " split between 3 sites per side" : " split between 3 sites")];
+      },
       body: function (item, n, side) { return tonText(item, side, !!n); }
     },
     c_mbb: {
@@ -1200,7 +1223,7 @@
         var out = [];
 
         if (item.toggles && item.toggles.ton) {
-          out.push("TON: " + tonVol(item) + "cc " + mixValue(item, "la") + (state.modality === "fluoro" ? (item.toggles.diagnostic ? (item.lat === "bilateral" ? " (0.6cc per side; 0.2cc at each of 3 sites per side)" : " (0.2cc at each of 3 sites)") : (item.lat === "bilateral" ? " (1cc per side, split over 3 sites per side)" : " split over 3 sites")) : ""));
+          out.push("TON: " + tonVol(item) + "cc " + mixValue(item, "la") + (state.modality === "fluoro" ? (diagnosticSelected(item) ? (item.lat === "bilateral" ? " (0.6cc per side; 0.2cc at each of 3 sites per side)" : " (0.2cc at each of 3 sites)") : (item.lat === "bilateral" ? " (1cc per side, split over 3 sites per side)" : " split over 3 sites")) : ""));
         }
         if ((item.levels || []).length) out.push(PROCS.c_mbb.injLabel + ": " + mixText(item));
         return out;
@@ -1214,7 +1237,7 @@
       addTP: true, tpMuscle: "the trapezius",
       inj: "",
       perTarget: true,
-      mixFn: function (item) { return perSide(item, { la: state.modality === "fluoro" ? "bupivacaine 0.5%" : "lidocaine 1%", laVol: state.modality === "fluoro" && item.toggles && item.toggles.diagnostic ? 0.25 : 1, stVol: "" }); },
+      mixFn: function (item) { return perSide(item, { la: state.modality === "fluoro" ? "bupivacaine 0.5%" : "lidocaine 1%", laVol: diagnosticSelected(item) ? 0.25 : 1, stVol: "" }); },
       body: function (s, n, side) {
   var lv = levelText(s.levels);
   var t;
@@ -1229,7 +1252,7 @@
     }).join(" ") + " Contrast was used to confirm no vascular uptake prior to injectate at " + lv + ".";
     if (!(s.toggles && s.toggles.ton)) t = "A true AP view was " + T(n) + "obtained and the C-arm rotated to profile the cervical articular pillars. " + t;
   } else {
-    t = "With the patient in the lateral decubitus position, the " + S(side) +
+    t = "The " + S(side) +
       "cervical articular pillars were " + T(n) + "counted caudally from C2 in a coronal plane and the target medial branch identified at the waist of the pillar at " + lv +
       ", with the vertebral artery and radicular vessels confirmed outside the planned trajectory. A " + s.needle +
       " was advanced in-plane, posterior to anterior, to the pillar, with injectate seen at the target.";
@@ -1255,7 +1278,7 @@
       choice: { key: "access", label: "Access", options: [{ v: "transfacet", label: "Transfacet (fluoro)" }, { v: "tf", label: "Transforaminal (US)" }] },
       mixJoin: "in",
       inj: "",
-      mix: { contrast: "1", la: "preservative-free normal saline", laVol: "4", st: "Dexamethasone 10 mg/mL", stVol: "1", split: 1 },
+      mix: { contrast: "1", la: "preservative-free normal saline", laVol: "4", st: EPIDURAL_STEROID, stVol: "1", split: 1 },
       body: function (s, n, side) {
   if (s.access === "tf") {
     return "The " + S(side) + levelText(s.levels) + " cervical foramen was " + T(n) +
@@ -1278,7 +1301,7 @@
       localText: "Local anesthetic was infiltrated with a " + LOCAL_NEEDLE + ".",
       choice: { key: "approach", label: "Approach", options: [{ v: "anterior", label: "Anterior" }, { v: "posterior", label: "Posterior" }] },
       inj: "",
-      mixFn: function (item) { return perSide(item, { la: "bupivacaine 0.25%", laVol: 9, st: "Methylprednisolone 40 mg/mL", stVol: 1 }); },
+      mixFn: function (item) { return perSide(item, { la: "bupivacaine 0.25%", laVol: 9, st: NON_EPIDURAL_STEROID, stVol: 1 }); },
       body: function (s, n, side) {
         if (s.approach === "posterior") {
           return "The " + S(side) + "glenohumeral joint was " + T(n) + "accessed via the posterior approach. The transducer was placed transversely below the scapular spine, and the humeral head, posterior labrum and infraspinatus were identified. A " + s.needle + " was advanced in-plane, lateral to medial, into the posterior joint recess between the humeral head and the labrum, with injectate seen filling the joint.";
@@ -1296,7 +1319,7 @@
       planClass: "therapeutic",
       localText: "Local anesthetic was infiltrated with a " + LOCAL_NEEDLE + ".",
       inj: "",
-      mixFn: function (item) { return perSide(item, { laVol: "", st: "Methylprednisolone 40 mg/mL", stVol: 1 }); },
+      mixFn: function (item) { return perSide(item, { laVol: "", st: NON_EPIDURAL_STEROID, stVol: 1 }); },
       text: { us: "The {S}acromioclavicular joint was {T}identified in the coronal oblique plane between the distal clavicle and the acromion. A {needle} was advanced out of plane into the joint space, with injectate seen entering the joint.", fluoro: "The {S}acromioclavicular joint was {T}identified in the coronal oblique plane between the distal clavicle and the acromion. A {needle} was advanced out of plane into the joint space, with injectate seen entering the joint.", landmark: "the distal clavicle was palpated to the step-off at the joint line and the needle directed inferiorly into the joint." }
     },
     sasd: {
@@ -1310,7 +1333,7 @@
       planClass: "therapeutic",
       localText: "Local anesthetic was infiltrated with a " + LOCAL_NEEDLE + ".",
       inj: "",
-      mixFn: function (item) { return perSide(item, { la: "lidocaine 1%", laVol: 4, st: "Methylprednisolone 40 mg/mL", stVol: 1 }); },
+      mixFn: function (item) { return perSide(item, { la: "lidocaine 1%", laVol: 4, st: NON_EPIDURAL_STEROID, stVol: 1 }); },
       body: function (s, n, side) {
         return "The " + S(side) + "deltoid, acromion, and supraspinatus tendon were " + T(n) + "identified, with the subacromial/subdeltoid bursal plane visualized deep to the acromion. A " + s.needle + " was advanced in-plane toward the bursa, with injectate seen flowing within the bursa.";
       }
@@ -1325,7 +1348,7 @@
       planClass: "therapeutic",
       localText: "Local anesthetic was infiltrated with a " + LOCAL_NEEDLE + ".",
       inj: "",
-      mixFn: function (item) { return perSide(item, { la: "lidocaine 1%", laVol: 3, st: "Methylprednisolone 40 mg/mL", stVol: 0.5 }); },
+      mixFn: function (item) { return perSide(item, { la: "lidocaine 1%", laVol: 3, st: NON_EPIDURAL_STEROID, stVol: 0.5 }); },
       text: { us: "The {S}long head of biceps tendon was {T}identified in the bicipital groove in the short-axis plane. A {needle} was advanced in-plane, lateral to medial, into the tendon sheath, with injectate seen distending the sheath and no intratendinous injection.", fluoro: "The {S}long head of biceps tendon was {T}identified in the bicipital groove in the short-axis plane. A {needle} was advanced in-plane, lateral to medial, into the tendon sheath, with injectate seen distending the sheath and no intratendinous injection.", landmark: "The {S}long head of biceps tendon was {T}identified in the bicipital groove in the short-axis plane. A {needle} was advanced in-plane, lateral to medial, into the tendon sheath, with injectate seen distending the sheath and no intratendinous injection." }
     },
     barbotage: {
@@ -1341,7 +1364,7 @@
       localText: "Local anesthetic was infiltrated with a " + LOCAL_NEEDLE + ".",
       localMix: { vol: 5, sites: 1 },
       inj: "",
-      mix: { la: "lidocaine 1%", laVol: "4", st: "Methylprednisolone 40 mg/mL", stVol: "1", split: 1 },
+      mix: { la: "lidocaine 1%", laVol: "4", st: NON_EPIDURAL_STEROID, stVol: "1", split: 1 },
       text: { us: "The {S}calcific deposit within the supraspinatus tendon was {T}identified and measured. Following local anesthetic infiltration of the skin and bursa, an 18g needle was advanced in-plane into the deposit and repeated lavage with normal saline performed until the returning fluid ran clear, with the deposit seen to decrease in size. The subacromial bursa was then injected.", fluoro: "The {S}calcific deposit within the supraspinatus tendon was {T}identified and measured. Following local anesthetic infiltration of the skin and bursa, an 18g needle was advanced in-plane into the deposit and repeated lavage with normal saline performed until the returning fluid ran clear, with the deposit seen to decrease in size. The subacromial bursa was then injected.", landmark: "The {S}calcific deposit within the supraspinatus tendon was {T}identified and measured. Following local anesthetic infiltration of the skin and bursa, an 18g needle was advanced in-plane into the deposit and repeated lavage with normal saline performed until the returning fluid ran clear, with the deposit seen to decrease in size. The subacromial bursa was then injected." }
     },
     ssn: {
@@ -1462,7 +1485,7 @@
       planClass: "therapeutic",
       localText: "Local anesthetic was infiltrated with a " + LOCAL_NEEDLE + ".",
       inj: "",
-      mixFn: function (item) { return perSide(item, { la: "lidocaine 1%", laVol: 2, st: "Methylprednisolone 40 mg/mL", stVol: 0.5 }); },
+      mixFn: function (item) { return perSide(item, { la: "lidocaine 1%", laVol: 2, st: NON_EPIDURAL_STEROID, stVol: 0.5 }); },
       text: { us: "The {S}common extensor origin was {T}identified at the lateral epicondyle in the long-axis plane, with hypoechoic change and neovascularity noted within the tendon. A {needle} was advanced in-plane to the peritendinous plane, with injectate seen distributing around rather than within the tendon.", fluoro: "The {S}common extensor origin was {T}identified at the lateral epicondyle in the long-axis plane, with hypoechoic change and neovascularity noted within the tendon. A {needle} was advanced in-plane to the peritendinous plane, with injectate seen distributing around rather than within the tendon.", landmark: "the lateral epicondyle was palpated and the needle directed to the point of maximal tenderness at the tendon origin." }
     },
     med_epi: {
@@ -1475,7 +1498,7 @@
       planClass: "therapeutic",
       localText: "Local anesthetic was infiltrated with a " + LOCAL_NEEDLE + ".",
       inj: "",
-      mixFn: function (item) { return perSide(item, { la: "lidocaine 1%", laVol: 2, st: "Methylprednisolone 40 mg/mL", stVol: 0.5 }); },
+      mixFn: function (item) { return perSide(item, { la: "lidocaine 1%", laVol: 2, st: NON_EPIDURAL_STEROID, stVol: 0.5 }); },
       text: { us: "The {S}common flexor origin was {T}identified at the medial epicondyle in the long-axis plane, with the ulnar nerve confirmed posterior to the epicondyle and outside the planned trajectory. A {needle} was advanced in-plane to the peritendinous plane, with injectate seen distributing around the tendon.", fluoro: "The {S}common flexor origin was {T}identified at the medial epicondyle in the long-axis plane, with the ulnar nerve confirmed posterior to the epicondyle and outside the planned trajectory. A {needle} was advanced in-plane to the peritendinous plane, with injectate seen distributing around the tendon.", landmark: "the medial epicondyle was palpated, the ulnar groove identified and avoided, and the needle directed to the tendon origin." }
     },
     olecranon: {
@@ -1489,7 +1512,7 @@
       localText: "Local anesthetic was infiltrated with a " + LOCAL_NEEDLE + ".",
       toggles: [{ key: "aspirate", label: "Aspirated first", text: "The bursa was aspirated to collapse before injection and the character of the aspirate noted.", at: "start" }],
       inj: "",
-      mixFn: function (item) { return perSide(item, { la: "lidocaine 1%", laVol: 1, st: "Methylprednisolone 40 mg/mL", stVol: 0.5 }); },
+      mixFn: function (item) { return perSide(item, { la: "lidocaine 1%", laVol: 1, st: NON_EPIDURAL_STEROID, stVol: 0.5 }); },
       text: { us: "The {S}olecranon bursa was {T}identified over the olecranon process, distended with anechoic fluid. A 21g needle was advanced in-plane into the bursa and the fluid aspirated to collapse, with the character of the aspirate noted, followed by injection.", fluoro: "The {S}olecranon bursa was {T}identified over the olecranon process, distended with anechoic fluid. A 21g needle was advanced in-plane into the bursa and the fluid aspirated to collapse, with the character of the aspirate noted, followed by injection.", landmark: "The {S}olecranon bursa was {T}identified over the olecranon process, distended with anechoic fluid. A 21g needle was advanced in-plane into the bursa and the fluid aspirated to collapse, with the character of the aspirate noted, followed by injection." }
     },
     carpal: {
@@ -1502,7 +1525,7 @@
       planClass: "therapeutic",
       localText: "Local anesthetic was infiltrated with a " + LOCAL_NEEDLE + ".",
       inj: "",
-      mix: { la: "normal saline", laVol: "4", st: "Methylprednisolone 40 mg/mL", stVol: "1", split: 1 },
+      mix: { la: "normal saline", laVol: "4", st: NON_EPIDURAL_STEROID, stVol: "1", split: 1 },
       text: { us: "The {S}median nerve was {T}identified in the short-axis plane at the level of the carpal tunnel, deep to the flexor retinaculum and superficial to the flexor tendons, with the ulnar artery and the recurrent motor branch confirmed outside the trajectory. A {needle} was advanced in-plane, ulnar to radial, to the subsynovial plane, and injectate seen circumferentially separating the nerve from the retinaculum without intraneural spread.", fluoro: "The {S}median nerve was {T}identified in the short-axis plane at the level of the carpal tunnel, deep to the flexor retinaculum and superficial to the flexor tendons, with the ulnar artery and the recurrent motor branch confirmed outside the trajectory. A {needle} was advanced in-plane, ulnar to radial, to the subsynovial plane, and injectate seen circumferentially separating the nerve from the retinaculum without intraneural spread.", landmark: "The {S}median nerve was {T}identified in the short-axis plane at the level of the carpal tunnel, deep to the flexor retinaculum and superficial to the flexor tendons, with the ulnar artery and the recurrent motor branch confirmed outside the trajectory. A {needle} was advanced in-plane, ulnar to radial, to the subsynovial plane, and injectate seen circumferentially separating the nerve from the retinaculum without intraneural spread." }
     },
     dequervain: {
@@ -1515,7 +1538,7 @@
       planClass: "therapeutic",
       localText: "Local anesthetic was infiltrated with a " + LOCAL_NEEDLE + ".",
       inj: "",
-      mixFn: function (item) { return perSide(item, { la: "lidocaine 1%", laVol: 0.5, st: "Methylprednisolone 40 mg/mL", stVol: 1 }); },
+      mixFn: function (item) { return perSide(item, { la: "lidocaine 1%", laVol: 0.5, st: NON_EPIDURAL_STEROID, stVol: 1 }); },
       text: { us: "The {S}first dorsal compartment was {T}identified in the short-axis plane over the radial styloid, with abductor pollicis longus and extensor pollicis brevis seen within the sheath and any intervening septum noted. A {needle} was advanced in-plane into the sheath, with injectate seen distending it around both tendons and the superficial radial nerve confirmed outside the trajectory.", fluoro: "The {S}first dorsal compartment was {T}identified in the short-axis plane over the radial styloid, with abductor pollicis longus and extensor pollicis brevis seen within the sheath and any intervening septum noted. A {needle} was advanced in-plane into the sheath, with injectate seen distending it around both tendons and the superficial radial nerve confirmed outside the trajectory.", landmark: "The {S}first dorsal compartment was {T}identified in the short-axis plane over the radial styloid, with abductor pollicis longus and extensor pollicis brevis seen within the sheath and any intervening septum noted. A {needle} was advanced in-plane into the sheath, with injectate seen distending it around both tendons and the superficial radial nerve confirmed outside the trajectory." }
     },
     a1_pulley: {
@@ -1530,7 +1553,7 @@
       levels: { label: "Digit", options: ["Thumb", "Index", "Middle", "Ring", "Little"] },
       inj: "",
       perTarget: true,
-      mixFn: function (item) { return perSide(item, { la: "lidocaine 1%", laVol: 0.5, st: "Methylprednisolone 40 mg/mL", stVol: 0.5 }); },
+      mixFn: function (item) { return perSide(item, { la: "lidocaine 1%", laVol: 0.5, st: NON_EPIDURAL_STEROID, stVol: 0.5 }); },
       text: { us: "The {S}A1 pulley was {T}identified in the short-axis plane over the metacarpal head, with thickening of the pulley and the underlying flexor tendons noted. A {needle} was advanced in-plane into the space between the pulley and the tendon, with injectate seen tracking within the sheath and no intratendinous injection.", fluoro: "The {S}A1 pulley was {T}identified in the short-axis plane over the metacarpal head, with thickening of the pulley and the underlying flexor tendons noted. A {needle} was advanced in-plane into the space between the pulley and the tendon, with injectate seen tracking within the sheath and no intratendinous injection.", landmark: "The {S}A1 pulley was {T}identified in the short-axis plane over the metacarpal head, with thickening of the pulley and the underlying flexor tendons noted. A {needle} was advanced in-plane into the space between the pulley and the tendon, with injectate seen tracking within the sheath and no intratendinous injection." }
     },
     cmc: {
@@ -1543,7 +1566,7 @@
       planClass: "therapeutic",
       localText: "Local anesthetic was infiltrated with a " + LOCAL_NEEDLE + ".",
       inj: "",
-      mixFn: function (item) { return perSide(item, { la: "lidocaine 1%", laVol: 0.5, st: "Methylprednisolone 40 mg/mL", stVol: 0.5 }); },
+      mixFn: function (item) { return perSide(item, { la: "lidocaine 1%", laVol: 0.5, st: NON_EPIDURAL_STEROID, stVol: 0.5 }); },
       text: { us: "The {S}first carpometacarpal joint was {T}identified in the long-axis plane between the trapezium and the first metacarpal base, with the radial artery confirmed outside the trajectory. A {needle} was advanced in-plane into the joint, with injectate seen entering the joint space.", fluoro: "The {S}first carpometacarpal joint was {T}identified in the long-axis plane between the trapezium and the first metacarpal base, with the radial artery confirmed outside the trajectory. A {needle} was advanced in-plane into the joint, with injectate seen entering the joint space.", landmark: "the joint line was palpated with axial traction applied to the thumb and the needle directed into the opened joint from the dorsoradial side, avoiding the radial artery and the extensor pollicis brevis tendon." }
     },
     pecs: {
@@ -1558,7 +1581,7 @@
       levels: { label: "Planes", options: ["PECS I", "PECS II", "Serratus anterior"] },
       inj: "",
       perTarget: true,
-      mixFn: function (item) { return perSide(item, { la: "bupivacaine 0.25%", laVol: 9, st: "Methylprednisolone 40 mg/mL", stVol: 1 }); },
+      mixFn: function (item) { return perSide(item, { la: "bupivacaine 0.25%", laVol: 9, st: NON_EPIDURAL_STEROID, stVol: 1 }); },
       body: function (s, n, side) {
   var map = {
     "PECS I": "the interfascial plane between pectoralis major and pectoralis minor at the third rib, with the thoracoacromial artery used as the landmark",
@@ -1582,7 +1605,7 @@
       planClass: "therapeutic",
       localText: "Local anesthetic was infiltrated with a " + LOCAL_NEEDLE + ".",
       inj: "",
-      mixFn: function (item) { return perSide(item, { la: "bupivacaine 0.25%", laVol: 9, st: "Methylprednisolone 40 mg/mL", stVol: 1 }); },
+      mixFn: function (item) { return perSide(item, { la: "bupivacaine 0.25%", laVol: 9, st: NON_EPIDURAL_STEROID, stVol: 1 }); },
       text: { us: "The {S}serratus posterior superior was {T}identified deep to rhomboid major at the level of the second to fifth ribs, medial to the scapula. A {needle} was advanced in-plane to the interfascial plane deep to the muscle, with injectate seen spreading within the plane and the pleura confirmed well clear of the trajectory.", fluoro: "The {S}serratus posterior superior was {T}identified deep to rhomboid major at the level of the second to fifth ribs, medial to the scapula. A {needle} was advanced in-plane to the interfascial plane deep to the muscle, with injectate seen spreading within the plane and the pleura confirmed well clear of the trajectory.", landmark: "The {S}serratus posterior superior was {T}identified deep to rhomboid major at the level of the second to fifth ribs, medial to the scapula. A {needle} was advanced in-plane to the interfascial plane deep to the muscle, with injectate seen spreading within the plane and the pleura confirmed well clear of the trajectory." }
     },
     spi: {
@@ -1595,7 +1618,7 @@
       planClass: "therapeutic",
       localText: "Local anesthetic was infiltrated with a " + LOCAL_NEEDLE + ".",
       inj: "",
-      mixFn: function (item) { return perSide(item, { la: "bupivacaine 0.25%", laVol: 9, st: "Methylprednisolone 40 mg/mL", stVol: 1 }); },
+      mixFn: function (item) { return perSide(item, { la: "bupivacaine 0.25%", laVol: 9, st: NON_EPIDURAL_STEROID, stVol: 1 }); },
       text: { us: "The {S}serratus posterior inferior was {T}identified at the T12 level deep to latissimus dorsi, overlying the lower ribs and the thoracolumbar fascia. A {needle} was advanced in-plane to the interfascial plane deep to the muscle, with injectate seen spreading within the plane.", fluoro: "The {S}serratus posterior inferior was {T}identified at the T12 level deep to latissimus dorsi, overlying the lower ribs and the thoracolumbar fascia. A {needle} was advanced in-plane to the interfascial plane deep to the muscle, with injectate seen spreading within the plane.", landmark: "The {S}serratus posterior inferior was {T}identified at the T12 level deep to latissimus dorsi, overlying the lower ribs and the thoracolumbar fascia. A {needle} was advanced in-plane to the interfascial plane deep to the muscle, with injectate seen spreading within the plane." }
     },
     rhomb_ic: {
@@ -1609,7 +1632,7 @@
       localText: "Local anesthetic was infiltrated with a " + LOCAL_NEEDLE + ".",
       toggles: [{ key: "riss", label: "Subserratus extension (RISS)", text: "The transducer was then moved caudally and laterally to the plane deep to serratus anterior at the sixth to seventh rib, and a second injection deposited within that plane.", at: "end" }],
       inj: "",
-      mixFn: function (item) { return perSide(item, { la: "bupivacaine 0.25%", laVol: 9, st: "Methylprednisolone 40 mg/mL", stVol: 1 }); },
+      mixFn: function (item) { return perSide(item, { la: "bupivacaine 0.25%", laVol: 9, st: NON_EPIDURAL_STEROID, stVol: 1 }); },
       text: { us: "The {S}rhomboid major was {T}identified medial to the scapula at the T5-T6 level, with the intercostal muscles and the underlying pleura seen deep to it. A {needle} was advanced in-plane to the plane between rhomboid major and the intercostal muscles, with injectate seen separating them.", fluoro: "The {S}rhomboid major was {T}identified medial to the scapula at the T5-T6 level, with the intercostal muscles and the underlying pleura seen deep to it. A {needle} was advanced in-plane to the plane between rhomboid major and the intercostal muscles, with injectate seen separating them.", landmark: "The {S}rhomboid major was {T}identified medial to the scapula at the T5-T6 level, with the intercostal muscles and the underlying pleura seen deep to it. A {needle} was advanced in-plane to the plane between rhomboid major and the intercostal muscles, with injectate seen separating them." }
     },
     esp: {
@@ -1645,7 +1668,7 @@
       localText: "Local anesthetic was infiltrated with a " + LOCAL_NEEDLE + ".",
       levels: { label: "Levels", options: ["T2", "T3", "T4", "T5", "T6", "T7", "T8", "T9", "T10", "T11", "T12"] },
       inj: "",
-      mixFn: function (item) { return perSide(item, { la: "bupivacaine 0.25%", laVol: 9, st: "Methylprednisolone 40 mg/mL", stVol: 1 }); },
+      mixFn: function (item) { return perSide(item, { la: "bupivacaine 0.25%", laVol: 9, st: NON_EPIDURAL_STEROID, stVol: 1 }); },
       text: { us: "The {S}transverse processes of {levels} were {T}identified in a parasagittal plane and the transducer moved to profile the intertransverse tissue between them, with the superior costotransverse ligament and the pleura seen deep to it. A {needle} was advanced in-plane to the retro-superior costotransverse ligament space, with injectate seen depressing the ligament anteriorly and spreading toward the costotransverse foramen.", fluoro: "The {S}transverse processes of {levels} were {T}identified in a parasagittal plane and the transducer moved to profile the intertransverse tissue between them, with the superior costotransverse ligament and the pleura seen deep to it. A {needle} was advanced in-plane to the retro-superior costotransverse ligament space, with injectate seen depressing the ligament anteriorly and spreading toward the costotransverse foramen.", landmark: "The {S}transverse processes of {levels} were {T}identified in a parasagittal plane and the transducer moved to profile the intertransverse tissue between them, with the superior costotransverse ligament and the pleura seen deep to it. A {needle} was advanced in-plane to the retro-superior costotransverse ligament space, with injectate seen depressing the ligament anteriorly and spreading toward the costotransverse foramen." }
     },
     ql: {
@@ -1662,7 +1685,7 @@
       levels: { label: "Approach", options: ["QL1 lateral", "QL2 posterior", "QL3 transmuscular"], defaults: ["QL2 posterior"] },
       inj: "",
       perTarget: true,
-      mixFn: function (item) { return perSide(item, { la: "bupivacaine 0.25%", laVol: 9, st: "Methylprednisolone 40 mg/mL", stVol: 1 }); },
+      mixFn: function (item) { return perSide(item, { la: "bupivacaine 0.25%", laVol: 9, st: NON_EPIDURAL_STEROID, stVol: 1 }); },
       body: function (s, n, side) {
   var map = {
     "QL1 lateral": "the anterolateral border of quadratus lumborum at its junction with the transversalis fascia",
@@ -1689,7 +1712,7 @@
       levels: { label: "Levels", options: ["T2", "T3", "T4", "T5", "T6", "T7", "T8", "T9", "T10", "T11", "T12"] },
       inj: "",
       perTarget: true,
-      mixFn: function (item) { return perSide(item, { la: "bupivacaine 0.25%", laVol: 3, st: "Methylprednisolone 40 mg/mL", stVol: 0.25 }); },
+      mixFn: function (item) { return perSide(item, { la: "bupivacaine 0.25%", laVol: 3, st: NON_EPIDURAL_STEROID, stVol: 0.25 }); },
       text: { us: "The {S}{level} rib was {T}identified in the short-axis plane at the posterior angle, with the intercostal groove profiled and the pleura seen deep to the internal intercostal membrane. A {needle} was advanced in-plane to the subcostal groove, with injectate seen depressing the pleura away from the needle tip and no intravascular spread on aspiration.", fluoro: "The {S}{level} rib was {T}identified in the short-axis plane at the posterior angle, with the intercostal groove profiled and the pleura seen deep to the internal intercostal membrane. A {needle} was advanced in-plane to the subcostal groove, with injectate seen depressing the pleura away from the needle tip and no intravascular spread on aspiration.", landmark: "The {S}{level} rib was {T}identified in the short-axis plane at the posterior angle, with the intercostal groove profiled and the pleura seen deep to the internal intercostal membrane. A {needle} was advanced in-plane to the subcostal groove, with injectate seen depressing the pleura away from the needle tip and no intravascular spread on aspiration." }
     },
     tap: {
@@ -1702,7 +1725,7 @@
       planClass: "therapeutic",
       localText: "Local anesthetic was infiltrated with a " + LOCAL_NEEDLE + ".",
       inj: "",
-      mixFn: function (item) { return perSide(item, { la: "bupivacaine 0.25%", laVol: 9, st: "Methylprednisolone 40 mg/mL", stVol: 1 }); },
+      mixFn: function (item) { return perSide(item, { la: "bupivacaine 0.25%", laVol: 9, st: NON_EPIDURAL_STEROID, stVol: 1 }); },
       text: { us: "The {S}abdominal wall was scanned in the mid-axillary line between the costal margin and the iliac crest, with external oblique, internal oblique and transversus abdominis identified in turn. A {needle} was {T}advanced in-plane to the plane between internal oblique and transversus abdominis, with injectate seen separating the two muscles and the peritoneum confirmed deep to the trajectory.", fluoro: "The {S}abdominal wall was scanned in the mid-axillary line between the costal margin and the iliac crest, with external oblique, internal oblique and transversus abdominis identified in turn. A {needle} was {T}advanced in-plane to the plane between internal oblique and transversus abdominis, with injectate seen separating the two muscles and the peritoneum confirmed deep to the trajectory.", landmark: "The {S}abdominal wall was scanned in the mid-axillary line between the costal margin and the iliac crest, with external oblique, internal oblique and transversus abdominis identified in turn. A {needle} was {T}advanced in-plane to the plane between internal oblique and transversus abdominis, with injectate seen separating the two muscles and the peritoneum confirmed deep to the trajectory." }
     },
     rectus: {
@@ -1715,7 +1738,7 @@
       planClass: "therapeutic",
       localText: "Local anesthetic was infiltrated with a " + LOCAL_NEEDLE + ".",
       inj: "",
-      mixFn: function (item) { return perSide(item, { la: "bupivacaine 0.25%", laVol: 10, st: "Methylprednisolone 40 mg/mL", stVol: 0.5 }); },
+      mixFn: function (item) { return perSide(item, { la: "bupivacaine 0.25%", laVol: 10, st: NON_EPIDURAL_STEROID, stVol: 0.5 }); },
       text: { us: "The {S}rectus abdominis was {T}identified in the short-axis plane at the level of maximal tenderness, with the posterior rectus sheath seen deep to the muscle and the inferior epigastric vessels confirmed outside the trajectory. A {needle} was advanced in-plane to the plane between the muscle and the posterior sheath, with injectate seen lifting the muscle off the sheath.", fluoro: "The {S}rectus abdominis was {T}identified in the short-axis plane at the level of maximal tenderness, with the posterior rectus sheath seen deep to the muscle and the inferior epigastric vessels confirmed outside the trajectory. A {needle} was advanced in-plane to the plane between the muscle and the posterior sheath, with injectate seen lifting the muscle off the sheath.", landmark: "The {S}rectus abdominis was {T}identified in the short-axis plane at the level of maximal tenderness, with the posterior rectus sheath seen deep to the muscle and the inferior epigastric vessels confirmed outside the trajectory. A {needle} was advanced in-plane to the plane between the muscle and the posterior sheath, with injectate seen lifting the muscle off the sheath." }
     },
     ilio: {
@@ -1728,7 +1751,7 @@
       planClass: "diagnostic",
       localText: "Local anesthetic was infiltrated with a " + LOCAL_NEEDLE + ".",
       inj: "",
-      mixFn: function (item) { return perSide(item, { la: "bupivacaine 0.25%", laVol: 8, st: "Methylprednisolone 40 mg/mL", stVol: 0.5 }); },
+      mixFn: function (item) { return perSide(item, { la: "bupivacaine 0.25%", laVol: 8, st: NON_EPIDURAL_STEROID, stVol: 0.5 }); },
       text: { us: "The {S}anterior superior iliac spine was {T}identified and the transducer placed along a line toward the umbilicus, with the ilioinguinal and iliohypogastric nerves seen in the plane between internal oblique and transversus abdominis medial to the spine, alongside the deep circumflex iliac artery. A {needle} was advanced in-plane to the plane, with injectate seen surrounding both nerves.", fluoro: "The {S}anterior superior iliac spine was {T}identified and the transducer placed along a line toward the umbilicus, with the ilioinguinal and iliohypogastric nerves seen in the plane between internal oblique and transversus abdominis medial to the spine, alongside the deep circumflex iliac artery. A {needle} was advanced in-plane to the plane, with injectate seen surrounding both nerves.", landmark: "The {S}anterior superior iliac spine was {T}identified and the transducer placed along a line toward the umbilicus, with the ilioinguinal and iliohypogastric nerves seen in the plane between internal oblique and transversus abdominis medial to the spine, alongside the deep circumflex iliac artery. A {needle} was advanced in-plane to the plane, with injectate seen surrounding both nerves." }
     },
     t_mbb: {
@@ -1813,7 +1836,13 @@
       pos: "prone", needle: "22g 5 inch spinal needle",
       dx: "Lumbar radiculopathy", dxAlt: ["Lumbar radiculopathy", "Lumbar disc herniation with radiculopathy", "Foraminal stenosis", "Lateral recess stenosis", "Failed back surgery syndrome", "Degenerative spondylolisthesis with radiculopathy", "Post-herpetic neuralgia (lumbar)"],
       injLabel: "TFESI", siteNoun: "levels",
-      consentAdd: "The risks of vascular injection, dural puncture and, rarely, neurological injury were discussed. Non-particulate steroid was used deliberately.",
+      consentFn: function (item) {
+        var text = "The risks of vascular injection, dural puncture and, rarely, neurological injury were discussed.";
+        if (!item.injTouched && Number(mixValue(item, "stVol")) > 0 && /^Dexamethasone\b/i.test(mixValue(item, "st"))) {
+          text += " Non-particulate steroid was used deliberately.";
+        }
+        return text;
+      },
       planClass: "diagnostic",
       localDefault: true,
       localMix: { vol: 2, sites: 1 },
@@ -1826,7 +1855,7 @@
       mixFn: function (item) {
         var n = jointCount(item);
         return { contrast: String(n), la: "lidocaine 1%", laVol: String(n),
-                 st: "Dexamethasone 10 mg/mL", stVol: String(n), split: n };
+                 st: EPIDURAL_STEROID, stVol: String(n), split: n };
       },
       body: function (s, n, side) {
         var lv = s.levels || [];
@@ -1837,7 +1866,7 @@
 
         if (lum.length) {
           out.push(s.approach === "infraneural"
-            ? "A true AP was " + T(n) + "obtained with the superior endplate of the inferior vertebral body squared. The fluoroscope was rotated ipsilaterally oblique — to a greater degree than for a supraneural approach — until the superior articular process of the level below lay at the midpoint of the target vertebral body, and the target marked at the lateral aspect of the SAP just below the midpoint of the disc. A " + needle + " was advanced under incremental oblique and true lateral imaging to contact the lateral border of the SAP, then advanced a few millimetres medially into the foramen, with the tip confirmed in the caudal foramen posterior to the dorsal border of the disc on lateral and just lateral to the 12 o'clock position of the infrasegmental pedicle on AP at " + S(side) + levelText(lum) + ". Pre-contrast images were saved. Contrast injected under real-time AP fluoroscopy demonstrated perineural epidural spread without arterial, intrathecal or venous uptake. Post-contrast images were saved and dexamethasone injected."
+            ? "A true AP was " + T(n) + "obtained with the superior endplate of the inferior vertebral body squared. The fluoroscope was rotated ipsilaterally oblique — to a greater degree than for a supraneural approach — until the superior articular process of the level below lay at the midpoint of the target vertebral body, and the target marked at the lateral aspect of the SAP just below the midpoint of the disc. A " + needle + " was advanced under incremental oblique and true lateral imaging to contact the lateral border of the SAP, then advanced a few millimetres medially into the foramen, with the tip confirmed in the caudal foramen posterior to the dorsal border of the disc on lateral and just lateral to the 12 o'clock position of the infrasegmental pedicle on AP at " + S(side) + levelText(lum) + ". Pre-contrast images were saved. Contrast injected under real-time AP fluoroscopy demonstrated perineural epidural spread without arterial, intrathecal or venous uptake. Post-contrast images were saved and the injectate was administered."
             : "A true AP was " + T(n) + "obtained and " + vbText(lum) + " squared. The fluoroscope was rotated ipsilaterally oblique until the path to the target beneath the pedicle was unimpeded. A " + needle + " was advanced coaxially with the tip first confirmed at the 6 o'clock position of the pedicle on AP and immediately beneath the pedicle on true lateral. Pre-contrast lateral and AP images were saved. Contrast injected through microbore tubing under real-time AP fluoroscopy demonstrated epidural and perineural flow along the inferior and medial border of the pedicle, without arterial, intrathecal or venous uptake. Post-contrast images were saved and the injectate was administered through the same tubing.");
         }
 
@@ -1864,13 +1893,13 @@
       inj: "",
       mixFn: function (item) {
         return { contrast: "1", la: "bupivacaine 0.5%", laVol: "1",
-          st: "Dexamethasone 10 mg/mL", stVol: item.intent === "epidural_then_root" ? "1" : "", split: 1 };
+          st: EPIDURAL_STEROID, stVol: item.intent === "epidural_then_root" ? "1" : "", split: 1 };
       },
       nameFn: function (item) {
         var lv = levelText(item.levels);
         return item.intent === "epidural_then_root"
           ? lv + " TFESI (steroid only), followed by " + lv + " nerve root block with " + mixValue(item, "la")
-          : lv + " nerve root block with " + mixValue(item, "la");
+          : lv + " selective nerve root block";
       },
       injLinesFn: function (item) {
         var target = upperFirst(item.lat) + " " + levelText(item.levels);
@@ -1915,7 +1944,7 @@
       levels: { label: "Level", options: ["L2/3", "L3/4", "L4/5", "L5/S1"] },
       mixJoin: "flush",
       inj: "",
-      mix: { contrast: "2", la: "normal saline", laVol: "2", st: "Dexamethasone 10 mg/mL", stVol: "2", split: 1 },
+      mix: { contrast: "2", la: "normal saline", laVol: "2", st: EPIDURAL_STEROID, stVol: "2", split: 1 },
       text: { us: "A true AP was {T}obtained and the endplates squared at the target interspace, with the interlaminar window profiled. Using a paramedian approach, a {needle} was advanced under intermittent AP and lateral imaging to the interlaminar window and the epidural space entered by loss of resistance to saline. Contrast confirmed epidural spread on AP and lateral views without vascular, intrathecal or subdural pattern.", fluoro: "A true AP was {T}obtained and the endplates squared at the target interspace, with the interlaminar window profiled. Using a paramedian approach, a {needle} was advanced under intermittent AP and lateral imaging to the interlaminar window and the epidural space entered by loss of resistance to saline. Contrast confirmed epidural spread on AP and lateral views without vascular, intrathecal or subdural pattern.", landmark: "A true AP was {T}obtained and the endplates squared at the target interspace, with the interlaminar window profiled. Using a paramedian approach, a {needle} was advanced under intermittent AP and lateral imaging to the interlaminar window and the epidural space entered by loss of resistance to saline. Contrast confirmed epidural spread on AP and lateral views without vascular, intrathecal or subdural pattern." }
     },
     caudal: {
@@ -1933,7 +1962,7 @@
       localMix: { vol: 2, sites: 1 },
       mixJoin: "in",
       inj: "",
-      mix: { contrast: "2", la: "normal saline", laVol: "8", st: "Dexamethasone 10 mg/mL", stVol: "2", split: 1 },
+      mix: { contrast: "2", la: "normal saline", laVol: "8", st: EPIDURAL_STEROID, stVol: "2", split: 1 },
       text: { us: "The sacral hiatus was {T}identified between the sacral cornua on a lateral view. A {needle} was advanced through the sacrococcygeal ligament into the caudal canal, with the tip kept below the S3 level, and contrast confirmed epidural spread in the expected cephalad pattern without vascular or intrathecal uptake.", fluoro: "The sacral hiatus was {T}identified between the sacral cornua on a lateral view. A {needle} was advanced through the sacrococcygeal ligament into the caudal canal, with the tip kept below the S3 level, and contrast confirmed epidural spread in the expected cephalad pattern without vascular or intrathecal uptake.", landmark: "The sacral hiatus was {T}identified between the sacral cornua on a lateral view. A {needle} was advanced through the sacrococcygeal ligament into the caudal canal, with the tip kept below the S3 level, and contrast confirmed epidural spread in the expected cephalad pattern without vascular or intrathecal uptake." }
     },
     tlip: {
@@ -1950,7 +1979,7 @@
       toggles: [{ key: "mtlip", label: "mTLIP extension", text: "The transducer was moved further laterally and a second injection deposited in the plane between longissimus and iliocostalis.", at: "end" }],
       addTP: true, tpMuscle: "the lumbar erector spinae",
       inj: "",
-      mixFn: function (item) { return perSide(item, { la: "bupivacaine 0.25%", laVol: 20, st: "Methylprednisolone 40 mg/mL", stVol: 1 }); },
+      mixFn: function (item) { return perSide(item, { la: "bupivacaine 0.25%", laVol: 20, st: NON_EPIDURAL_STEROID, stVol: 1 }); },
       text: { us: "The {S}L3 spinous process was {T}identified and the transducer moved laterally to profile multifidus and longissimus. A {needle} was advanced in-plane to the interfascial plane between the two muscles, with injectate seen separating them along the dorsal rami.", fluoro: "The {S}L3 spinous process was {T}identified and the transducer moved laterally to profile multifidus and longissimus. A {needle} was advanced in-plane to the interfascial plane between the two muscles, with injectate seen separating them along the dorsal rami.", landmark: "The {S}L3 spinous process was {T}identified and the transducer moved laterally to profile multifidus and longissimus. A {needle} was advanced in-plane to the interfascial plane between the two muscles, with injectate seen separating them along the dorsal rami." }
     },
     lift: {
@@ -1965,7 +1994,7 @@
       localText: "Local anesthetic was infiltrated with a " + LOCAL_NEEDLE + ".",
       levels: { label: "Level", options: ["L3", "L4"] },
       inj: "",
-      mixFn: function (item) { return perSide(item, { la: "bupivacaine 0.25%", laVol: 20, st: "Methylprednisolone 40 mg/mL", stVol: 1 }); },
+      mixFn: function (item) { return perSide(item, { la: "bupivacaine 0.25%", laVol: 20, st: NON_EPIDURAL_STEROID, stVol: 1 }); },
       text: { us: "The {S}transverse process of L3 was {T}identified in the short-axis plane and the interfascial triangle profiled between multifidus medially, longissimus laterally and the transverse process anteriorly. A {needle} was advanced in-plane to the apex of the triangle at the transverse process, with injectate seen filling the triangle.", fluoro: "The {S}transverse process of L3 was {T}identified in the short-axis plane and the interfascial triangle profiled between multifidus medially, longissimus laterally and the transverse process anteriorly. A {needle} was advanced in-plane to the apex of the triangle at the transverse process, with injectate seen filling the triangle.", landmark: "The {S}transverse process of L3 was {T}identified in the short-axis plane and the interfascial triangle profiled between multifidus medially, longissimus laterally and the transverse process anteriorly. A {needle} was advanced in-plane to the apex of the triangle at the transverse process, with injectate seen filling the triangle." }
     },
     iliolumbar: {
@@ -1978,7 +2007,7 @@
       planClass: "diagnostic",
       localText: "Local anesthetic was infiltrated with a " + LOCAL_NEEDLE + ".",
       inj: "",
-      mixFn: function (item) { return perSide(item, { la: "lidocaine 1%", laVol: 2, st: "Methylprednisolone 40 mg/mL", stVol: 0.5 }); },
+      mixFn: function (item) { return perSide(item, { la: "lidocaine 1%", laVol: 2, st: NON_EPIDURAL_STEROID, stVol: 0.5 }); },
       text: { us: "The {S}L5 transverse process was {T}identified and the iliolumbar ligament traced from it to the posteromedial iliac crest. A {needle} was advanced in-plane to the ligament at its iliac attachment, with injectate seen distributing along the ligament.", fluoro: "The {S}L5 transverse process was {T}identified and the iliolumbar ligament traced from it to the posteromedial iliac crest. A {needle} was advanced in-plane to the ligament at its iliac attachment, with injectate seen distributing along the ligament.", landmark: "The {S}L5 transverse process was {T}identified and the iliolumbar ligament traced from it to the posteromedial iliac crest. A {needle} was advanced in-plane to the ligament at its iliac attachment, with injectate seen distributing along the ligament." }
     },
     bertolotti: {
@@ -2011,7 +2040,7 @@
       localText: "Local anesthetic was infiltrated with a " + LOCAL_NEEDLE + ".",
       levels: { label: "Level", options: ["L1/2", "L2/3", "L3/4", "L4/5", "L5/S1"] },
       inj: "",
-      mixFn: function (item) { return perSide(item, { la: "lidocaine 1%", laVol: 2, st: "Methylprednisolone 40 mg/mL", stVol: 0.5 }); },
+      mixFn: function (item) { return perSide(item, { la: "lidocaine 1%", laVol: 2, st: NON_EPIDURAL_STEROID, stVol: 0.5 }); },
       text: { us: "The interspinous space at {level} was {T}identified in the midline sagittal plane, with approximation of the adjacent spinous processes and a fluid-filled interspinous bursa noted. A {needle} was advanced in-plane into the bursa, with injectate seen filling it.", fluoro: "The interspinous space at {level} was {T}identified in the midline sagittal plane, with approximation of the adjacent spinous processes and a fluid-filled interspinous bursa noted. A {needle} was advanced in-plane into the bursa, with injectate seen filling it.", landmark: "The interspinous space at {level} was {T}identified in the midline sagittal plane, with approximation of the adjacent spinous processes and a fluid-filled interspinous bursa noted. A {needle} was advanced in-plane into the bursa, with injectate seen filling it." }
     },
     maigne: {
@@ -2027,7 +2056,7 @@
       levels: { label: "Levels", options: ["T11", "T12", "L1"] },
       inj: "",
       perTarget: true,
-      mixFn: function (item) { return perSide(item, { la: "lidocaine 1%", laVol: 1, st: "Methylprednisolone 40 mg/mL", stVol: 0.25 }); },
+      mixFn: function (item) { return perSide(item, { la: "lidocaine 1%", laVol: 1, st: NON_EPIDURAL_STEROID, stVol: 0.25 }); },
       text: { us: "A true AP was {T}obtained and the endplates squared at the thoracolumbar junction, with the levels counted carefully from the last rib-bearing vertebra. A {needle} was advanced to the target point on the transverse process at {levels}, with final position confirmed on AP and lateral views.", fluoro: "A true AP was {T}obtained and the endplates squared at the thoracolumbar junction, with the levels counted carefully from the last rib-bearing vertebra. A {needle} was advanced to the target point on the transverse process at {levels}, with final position confirmed on AP and lateral views.", landmark: "A true AP was {T}obtained and the endplates squared at the thoracolumbar junction, with the levels counted carefully from the last rib-bearing vertebra. A {needle} was advanced to the target point on the transverse process at {levels}, with final position confirmed on AP and lateral views." }
     },
     sij: {
@@ -2082,7 +2111,7 @@
       levels: { label: "Nerves", options: ["Superior", "Middle", "Inferior"], defaults: ["Superior"] },
       inj: "",
       perTarget: true,
-      mixFn: function (item) { return perSide(item, { la: "bupivacaine 0.25%", laVol: 2, st: "Methylprednisolone 40 mg/mL", stVol: 0.5 }); },
+      mixFn: function (item) { return perSide(item, { la: "bupivacaine 0.25%", laVol: 2, st: NON_EPIDURAL_STEROID, stVol: 0.5 }); },
       body: function (s, n, side) {
   var map = {
     "Superior": "the superior cluneal nerves crossing the crest through the osteofibrous tunnel formed by the thoracolumbar fascia and the iliac crest, medial to the posterior superior iliac spine",
@@ -2173,7 +2202,7 @@
       localText: "Local anesthetic was infiltrated with a " + LOCAL_NEEDLE + ".",
       localMix: { vol: 2, sites: 1 },
       inj: "",
-      mixFn: function (item) { return perSide(item, { la: "bupivacaine 0.25%", laVol: 8, st: "Methylprednisolone 40 mg/mL", stVol: 1 }); },
+      mixFn: function (item) { return perSide(item, { la: "bupivacaine 0.25%", laVol: 8, st: NON_EPIDURAL_STEROID, stVol: 1 }); },
       text: { us: "The {S}ischial spine was {T}identified with the sacrospinous ligament seen extending medially and the pudendal artery identified on colour Doppler just medial to the spine. A {needle} was advanced in-plane to the interligamentous plane between the sacrospinous and sacrotuberous ligaments, medial to the artery, with injectate seen spreading within the plane.", fluoro: "an AP view was {T}obtained, the ischial spine profiled and the needle advanced to its medial aspect, with contrast confirming spread in the interligamentous plane without vascular uptake.", landmark: "The {S}ischial spine was {T}identified with the sacrospinous ligament seen extending medially and the pudendal artery identified on colour Doppler just medial to the spine. A {needle} was advanced in-plane to the interligamentous plane between the sacrospinous and sacrotuberous ligaments, medial to the artery, with injectate seen spreading within the plane." }
     },
     impar: {
@@ -2204,7 +2233,7 @@
                     "Co1/2 joint": "0.5cc into the Co1/2 joint" };
         var parts = (item.levels || []).map(function (l) { return VOL[l]; }).filter(Boolean);
         if (!parts.length) return ["Ganglion impar: [no target selected]"];
-        return ["Coccygeal injection: 1cc contrast; 4cc lidocaine 1% + 1cc Methylprednisolone 40 mg/mL mixture; " +
+        return ["Coccygeal injection: 1cc contrast; 4cc lidocaine 1% + 1cc " + NON_EPIDURAL_STEROID + " mixture; " +
                 parts.join(", ")];
       },
       nameFn: function (item) {
@@ -2263,7 +2292,7 @@
       localText: "Local anesthetic was infiltrated with a " + LOCAL_NEEDLE + ".",
       localMix: { vol: 5, sites: 2 },
       inj: "",
-      mixFn: function (item) { return perSide(item, { la: "lidocaine 1%", laVol: 8, st: "Methylprednisolone 40 mg/mL", stVol: 2, sites: 2 }); },
+      mixFn: function (item) { return perSide(item, { la: "lidocaine 1%", laVol: 8, st: NON_EPIDURAL_STEROID, stVol: 2, sites: 2 }); },
       body: function (s, n, side) {
         return "The " + S(side) + "ischial tuberosity and the overlying conjoint hamstring tendon origin were " + T(n) +
           "identified, with the ischial bursa seen superficial to the tendon. Using a no-touch technique, a " + s.needle +
@@ -2282,7 +2311,7 @@
       levels: { label: "Branches", options: ["Anterior", "Posterior"] },
       inj: "",
       perTarget: true,
-      mixFn: function (item) { return perSide(item, { la: "bupivacaine 0.25%", laVol: 5, st: "Methylprednisolone 40 mg/mL", stVol: 0.5 }); },
+      mixFn: function (item) { return perSide(item, { la: "bupivacaine 0.25%", laVol: 5, st: NON_EPIDURAL_STEROID, stVol: 0.5 }); },
       body: function (s, n, side) {
   if (state.modality === "fluoro") {
     return "An AP view of the pelvis was " + T(n) + "obtained and the " + S(side) +
@@ -2309,7 +2338,7 @@
       planClass: "therapeutic",
       localText: "Local anesthetic was infiltrated with a " + LOCAL_NEEDLE + ".",
       inj: "",
-      mixFn: function (item) { return perSide(item, { contrast: "1", la: "lidocaine 1%", laVol: 4, st: "Methylprednisolone 40 mg/mL", stVol: 1 }); },
+      mixFn: function (item) { return perSide(item, { contrast: "1", la: "lidocaine 1%", laVol: 4, st: NON_EPIDURAL_STEROID, stVol: 1 }); },
       body: function (s, n, side) {
         return "The " + S(side) + "foot was internally rotated and an AP view of the hip " + T(n) +
           "obtained under fluoroscopy, with the femoral head-neck junction identified. A " + s.needle +
@@ -2330,7 +2359,7 @@
       levels: { label: "Bursae", options: ["Subgluteus maximus", "Subgluteus medius", "Subgluteus minimus"], defaults: ["Subgluteus medius"] },
       inj: "",
       perTarget: true,
-      mixFn: function (item) { return perSide(item, { la: "lidocaine 1%", laVol: 4, st: "Methylprednisolone 40 mg/mL", stVol: 1 }); },
+      mixFn: function (item) { return perSide(item, { la: "lidocaine 1%", laVol: 4, st: NON_EPIDURAL_STEROID, stVol: 1 }); },
       body: function (s, n, side) {
   var map = {
     "Subgluteus maximus": "the bursa overlying the posterior facet deep to gluteus maximus",
@@ -2359,7 +2388,7 @@
       planClass: "therapeutic",
       localText: "Local anesthetic was infiltrated with a " + LOCAL_NEEDLE + ".",
       inj: "",
-      mixFn: function (item) { return perSide(item, { la: "lidocaine 1%", laVol: 4, st: "Methylprednisolone 40 mg/mL", stVol: 1 }); },
+      mixFn: function (item) { return perSide(item, { la: "lidocaine 1%", laVol: 4, st: NON_EPIDURAL_STEROID, stVol: 1 }); },
       text: { us: "The {S}iliopsoas tendon was {T}identified in the short-axis plane over the iliopectineal eminence, with the femoral nerve and vessels confirmed lateral and medial to the trajectory respectively. A {needle} was advanced in-plane, lateral to medial, to the plane between the tendon and the bone, with injectate seen distending the bursa and no intratendinous injection.", fluoro: "The {S}iliopsoas tendon was {T}identified in the short-axis plane over the iliopectineal eminence, with the femoral nerve and vessels confirmed lateral and medial to the trajectory respectively. A {needle} was advanced in-plane, lateral to medial, to the plane between the tendon and the bone, with injectate seen distending the bursa and no intratendinous injection.", landmark: "The {S}iliopsoas tendon was {T}identified in the short-axis plane over the iliopectineal eminence, with the femoral nerve and vessels confirmed lateral and medial to the trajectory respectively. A {needle} was advanced in-plane, lateral to medial, to the plane between the tendon and the bone, with injectate seen distending the bursa and no intratendinous injection." }
     },
     genicular: {
@@ -2378,7 +2407,7 @@
       mixFn: function (item) {
         var nn = (item.levels && item.levels.length ? item.levels.length : 3) * (item.lat === "bilateral" ? 2 : 1);
         if (item.intent === "therapeutic") {
-          return { la: "bupivacaine 0.25%", laVol: String(3 * nn), st: "Methylprednisolone 40 mg/mL", stVol: String(0.5 * nn), split: nn };
+          return { la: "bupivacaine 0.25%", laVol: String(3 * nn), st: NON_EPIDURAL_STEROID, stVol: String(0.5 * nn), split: nn };
         }
         return { la: "bupivacaine 0.5%", laVol: String(1 * nn), stVol: "", split: nn };
       },
@@ -2422,9 +2451,9 @@
         // Under fluoroscopy the steroid goes in first and is chased, so the note records a
         // flush rather than a premixed syringe.
         if (state.modality === "fluoro") {
-          return perSide(item, { contrast: 1, la: "lidocaine 1%", laVol: 1, st: "Methylprednisolone 40 mg/mL", stVol: 1 });
+          return perSide(item, { contrast: 1, la: "lidocaine 1%", laVol: 1, st: NON_EPIDURAL_STEROID, stVol: 1 });
         }
-        return perSide(item, { la: "lidocaine 1%", laVol: 4, st: "Methylprednisolone 40 mg/mL", stVol: 1 });
+        return perSide(item, { la: "lidocaine 1%", laVol: 4, st: NON_EPIDURAL_STEROID, stVol: 1 });
       },
       mixJoinByMod: { fluoro: "flush" },
       body: function (s, n, side) {
@@ -2451,7 +2480,7 @@
       localText: "Local anesthetic was infiltrated with a " + LOCAL_NEEDLE + ".",
       levels: { label: "Articulation", options: ["Medial", "Intermediate", "Lateral"], defaults: ["Medial"] },
       inj: "",
-      mixFn: function (item) { return perSide(item, { la: "lidocaine 1%", laVol: 1, st: "Methylprednisolone 40 mg/mL", stVol: 0.5 }); },
+      mixFn: function (item) { return perSide(item, { la: "lidocaine 1%", laVol: 1, st: NON_EPIDURAL_STEROID, stVol: 0.5 }); },
       body: function (s, n, side) {
         var cn = (s.levels || []).map(function (l) { return l.toLowerCase(); });
         var which = cn.length
@@ -2473,7 +2502,7 @@
       planClass: "therapeutic",
       localText: "Local anesthetic was infiltrated with a " + LOCAL_NEEDLE + ".",
       inj: "",
-      mixFn: function (item) { return perSide(item, { la: "lidocaine 1%", laVol: 2, st: "Methylprednisolone 40 mg/mL", stVol: 1 }); },
+      mixFn: function (item) { return perSide(item, { la: "lidocaine 1%", laVol: 2, st: NON_EPIDURAL_STEROID, stVol: 1 }); },
       text: { us: "The {S}tibiotalar joint was {T}identified in the long-axis anterior plane, with the anterior tibial artery and the deep peroneal nerve confirmed outside the trajectory. A {needle} was advanced in-plane, distal to proximal, into the anterior joint recess, with injectate seen entering the joint.", fluoro: "The {S}tibiotalar joint was {T}identified in the long-axis anterior plane, with the anterior tibial artery and the deep peroneal nerve confirmed outside the trajectory. A {needle} was advanced in-plane, distal to proximal, into the anterior joint recess, with injectate seen entering the joint.", landmark: "The {S}tibiotalar joint was {T}identified in the long-axis anterior plane, with the anterior tibial artery and the deep peroneal nerve confirmed outside the trajectory. A {needle} was advanced in-plane, distal to proximal, into the anterior joint recess, with injectate seen entering the joint." }
     },
     subtalar: {
@@ -2486,7 +2515,7 @@
       planClass: "therapeutic",
       localText: "Local anesthetic was infiltrated with a " + LOCAL_NEEDLE + ".",
       inj: "",
-      mixFn: function (item) { return perSide(item, { la: "lidocaine 1%", laVol: 1, st: "Methylprednisolone 40 mg/mL", stVol: 0.5 }); },
+      mixFn: function (item) { return perSide(item, { la: "lidocaine 1%", laVol: 1, st: NON_EPIDURAL_STEROID, stVol: 0.5 }); },
       text: { us: "The {S}sinus tarsi was {T}identified in the oblique plane over the lateral hindfoot, with the posterior subtalar joint profiled between the talus and the calcaneus. A {needle} was advanced in-plane into the joint, with injectate seen entering the joint space.", fluoro: "The {S}sinus tarsi was {T}identified in the oblique plane over the lateral hindfoot, with the posterior subtalar joint profiled between the talus and the calcaneus. A {needle} was advanced in-plane into the joint, with injectate seen entering the joint space.", landmark: "The {S}sinus tarsi was {T}identified in the oblique plane over the lateral hindfoot, with the posterior subtalar joint profiled between the talus and the calcaneus. A {needle} was advanced in-plane into the joint, with injectate seen entering the joint space." }
     },
     plantar: {
@@ -2499,7 +2528,7 @@
       planClass: "therapeutic",
       localText: "Local anesthetic was infiltrated with a " + LOCAL_NEEDLE + ".",
       inj: "",
-      mixFn: function (item) { return perSide(item, { la: "lidocaine 1%", laVol: 1, st: "Methylprednisolone 40 mg/mL", stVol: 0.5 }); },
+      mixFn: function (item) { return perSide(item, { la: "lidocaine 1%", laVol: 1, st: NON_EPIDURAL_STEROID, stVol: 0.5 }); },
       text: { us: "The {S}plantar fascia was {T}identified in the long-axis plane at its calcaneal origin and measured, with hypoechoic thickening noted. A {needle} was advanced in-plane from the medial side to the peritendinous plane deep to the fascia, with injectate seen distributing around rather than within it.", fluoro: "The {S}plantar fascia was {T}identified in the long-axis plane at its calcaneal origin and measured, with hypoechoic thickening noted. A {needle} was advanced in-plane from the medial side to the peritendinous plane deep to the fascia, with injectate seen distributing around rather than within it.", landmark: "the medial calcaneal tubercle was palpated and the needle introduced from the medial side at the point of maximal tenderness." }
     },
     morton: {
@@ -2513,7 +2542,7 @@
       localText: "Local anesthetic was infiltrated with a " + LOCAL_NEEDLE + ".",
       levels: { label: "Web space", options: ["2nd", "3rd", "4th"] },
       inj: "",
-      mixFn: function (item) { return perSide(item, { la: "lidocaine 1%", laVol: 1, st: "Methylprednisolone 40 mg/mL", stVol: 0.5 }); },
+      mixFn: function (item) { return perSide(item, { la: "lidocaine 1%", laVol: 1, st: NON_EPIDURAL_STEROID, stVol: 0.5 }); },
       text: { us: "The {S}{level} intermetatarsal space was {T}identified in the short-axis plane from the dorsal aspect, with a hypoechoic mass seen between the metatarsal heads and Mulder's click reproduced on transverse compression. A {needle} was advanced in-plane from the dorsal side to the lesion, with injectate seen surrounding it.", fluoro: "The {S}{level} intermetatarsal space was {T}identified in the short-axis plane from the dorsal aspect, with a hypoechoic mass seen between the metatarsal heads and Mulder's click reproduced on transverse compression. A {needle} was advanced in-plane from the dorsal side to the lesion, with injectate seen surrounding it.", landmark: "The {S}{level} intermetatarsal space was {T}identified in the short-axis plane from the dorsal aspect, with a hypoechoic mass seen between the metatarsal heads and Mulder's click reproduced on transverse compression. A {needle} was advanced in-plane from the dorsal side to the lesion, with injectate seen surrounding it." }
     },
     tarsal: {
@@ -2526,7 +2555,7 @@
       planClass: "therapeutic",
       localText: "Local anesthetic was infiltrated with a " + LOCAL_NEEDLE + ".",
       inj: "",
-      mix: { la: "normal saline", laVol: "4", st: "Methylprednisolone 40 mg/mL", stVol: "1", split: 1 },
+      mix: { la: "normal saline", laVol: "4", st: NON_EPIDURAL_STEROID, stVol: "1", split: 1 },
       text: { us: "The {S}posterior tibial nerve was {T}identified in the short-axis plane posterior to the medial malleolus, deep to the flexor retinaculum and alongside the posterior tibial vessels, and traced to its medial and lateral plantar divisions. A {needle} was advanced in-plane to the subparaneural plane, with injectate seen circumferentially separating the nerve from the retinaculum without intraneural spread.", fluoro: "The {S}posterior tibial nerve was {T}identified in the short-axis plane posterior to the medial malleolus, deep to the flexor retinaculum and alongside the posterior tibial vessels, and traced to its medial and lateral plantar divisions. A {needle} was advanced in-plane to the subparaneural plane, with injectate seen circumferentially separating the nerve from the retinaculum without intraneural spread.", landmark: "The {S}posterior tibial nerve was {T}identified in the short-axis plane posterior to the medial malleolus, deep to the flexor retinaculum and alongside the posterior tibial vessels, and traced to its medial and lateral plantar divisions. A {needle} was advanced in-plane to the subparaneural plane, with injectate seen circumferentially separating the nerve from the retinaculum without intraneural spread." }
     },
     sup_peroneal: {
@@ -2539,7 +2568,7 @@
       planClass: "diagnostic",
       localText: "Local anesthetic was infiltrated with a " + LOCAL_NEEDLE + ".",
       inj: "",
-      mix: { la: "normal saline", laVol: "4", st: "Methylprednisolone 40 mg/mL", stVol: "0.5", split: 1 },
+      mix: { la: "normal saline", laVol: "4", st: NON_EPIDURAL_STEROID, stVol: "0.5", split: 1 },
       text: { us: "The {S}superficial peroneal nerve was {T}identified in the short-axis plane in the lateral compartment of the leg and traced distally to the point at which it pierces the crural fascia, approximately 10 to 12 cm above the lateral malleolus. A {needle} was advanced in-plane to the subfascial plane at the exit point, with injectate seen separating the nerve from the fascial edge without intraneural spread.", fluoro: "The {S}superficial peroneal nerve was {T}identified in the short-axis plane in the lateral compartment of the leg and traced distally to the point at which it pierces the crural fascia, approximately 10 to 12 cm above the lateral malleolus. A {needle} was advanced in-plane to the subfascial plane at the exit point, with injectate seen separating the nerve from the fascial edge without intraneural spread.", landmark: "The {S}superficial peroneal nerve was {T}identified in the short-axis plane in the lateral compartment of the leg and traced distally to the point at which it pierces the crural fascia, approximately 10 to 12 cm above the lateral malleolus. A {needle} was advanced in-plane to the subfascial plane at the exit point, with injectate seen separating the nerve from the fascial edge without intraneural spread." }
     },
     tpi: {
@@ -2589,7 +2618,9 @@
             ? " was advanced into the muscle belly, avoiding adjacent neurovascular structures"
             : " was advanced in-plane into the muscle belly under ultrasound visualization, avoiding adjacent neurovascular structures") +
           (s.twitch ? ", with muscle twitching noted on needle insertion confirming trigger point localization" : "") +
-          ", and injectate was seen dispersing within the muscle substance.";
+          (state.modality === "fluoro"
+            ? ", and the injectate was delivered into the muscle."
+            : ", and injectate was seen dispersing within the muscle substance.");
       }
       , muscleField: true, twitchField: true
     },
@@ -2669,7 +2700,7 @@
         var n = (item.levels || []).length;
         var total = (2 * n) + (sps ? 10 : 0);
         return { la: "bupivacaine 0.125%", laVol: String(total * mult),
-                 st: "Dexamethasone 8 mg", stVol: sps ? String(mult) : "", split: mult };
+                 st: NON_EPIDURAL_STEROID, stVol: sps ? String(mult) : "", split: mult };
       },
       body: function (s, n, side) {
   var L = s.levels || [];
@@ -2725,7 +2756,7 @@
 
   var AFTERCARE_DEFAULT = "The patient was observed for 15 minutes in the waiting room and discharged home in stable condition.";
   var PLAN_ENABLE_DEFAULT = "The block is intended to reduce pain sufficiently to allow progression of the active rehabilitation program.";
-  var PLAN_DX = "A diagnostic response of at least 80% relief within the duration of local anesthetic would support proceeding to radiofrequency ablation of the same target; a lesser response redirects investigation.";
+  var PLAN_DX = "The response during the duration of local anesthetic will be reviewed to guide further management.";
   var PLAN_EXERCISE_DEFAULT = "Stretching exercises demonstrated in clinic, three times daily.";
   var PLAN_REFERRAL_DEFAULT = "Referral for physiotherapy.";
   var PLAN_COUNSEL_DEFAULT = "Smoking cessation counselling provided.";
@@ -2765,7 +2796,8 @@
       dxTouched: false,
       infection: null,
       infectionText: "",
-      allergies: null,
+      // Clinician-authorized draft default; a known allergy always takes precedence.
+      allergies: "nkda",
       allergyText: "",
       contrast: null,
       cancelReason: "",
@@ -2819,13 +2851,15 @@
       levels: (p.levels && p.levels.defaults) ? p.levels.defaults.slice() : [],
       toggles: (function () {
         var o = {};
-        (p.toggles || []).forEach(function (t) { if (t.on) o[t.key] = true; });
+        (p.toggles || []).forEach(function (t) {
+          if (t.on && !(t.key === "diagnostic" && isCervicalBlock(key) && state.modality !== "fluoro")) o[t.key] = true;
+        });
         return o;
       })(),
       approach: null, access: null, intent: null, cpattern: null, addTP: false, addOn: false, parentUid: null,
       local: p.localDefault === true, injTouched: false,
       mixOn: !!(p.mix || p.mixFn), mix: {}, mixTouch: {},
-      dev: ""
+      techniqueOverride: "", dev: ""
     };
   }
 
@@ -2876,7 +2910,7 @@
     }
     // A toggle flagged nameOnly modifies the name rather than the paragraph.
     (p.toggles || []).forEach(function (t) {
-      if (t.nameOnly && item.toggles[t.key]) nm = t.label.toLowerCase() + " " + nm;
+      if (t.nameOnly && (t.key === "diagnostic" ? diagnosticSelected(item) : item.toggles[t.key])) nm = t.label.toLowerCase() + " " + nm;
     });
     return nm.replace(/\s+/g, " ").trim();
   }
@@ -2885,29 +2919,97 @@
   // laterality to be armed before it can be picked.
   function isMidline(key) { return !!PROCS[key].midline; }
 
+  // Title-only abbreviations. Keep the full anatomical/technical prose untouched.
+  function titleLevel(level) {
+    return String(level).replace(/([CTLS]|Co)(\d+)\/(?:([CTLS]|Co))?(\d+)/g, function (_, a, b, c, d) {
+      return a + b + "–" + (c || "") + d;
+    });
+  }
+  function titleLevels(levels) {
+    return (levels && levels.length) ? levels.map(titleLevel).join(", ") : "[levels not selected]";
+  }
+  function titleNerveRange(levels) {
+    var match = (levels || []).map(function (l) { return /^([CTLS])(\d+)$/.exec(l); });
+    if (match.length >= 3 && match.every(function (m, i) {
+      return m && m[1] === match[0][1] && Number(m[2]) === Number(match[0][2]) + i;
+    })) return levels[0] + "–" + levels[levels.length - 1];
+    return titleLevels(levels);
+  }
+  function titleIntent(item) {
+    var diagnostic = diagnosticSelected(item);
+    if (diagnostic) {
+      // A number is never inferred from the diagnosis, date or prior procedures.
+      var number = String(item.blockNumber || "").trim();
+      return ", diagnostic" + (/^[1-9]\d*$/.test(number) ? " #" + number : "");
+    }
+    return item.key === "ton" || item.key === "c_mbb" ? ", therapeutic" : "";
+  }
+  function titleRootAccess(level) {
+    return { L1: "L1–2", L2: "L2–3", L3: "L3–4", L4: "L4–5", L5: "L5–S1" }[level] || "";
+  }
+  function titleName(item) {
+    var levels = item.levels || [];
+    var lv = titleLevels(levels);
+    var name, parts;
+    switch (item.key) {
+    case "tfesi":
+      name = lv + " TFESI";
+      if (levels.length === 1 && titleRootAccess(levels[0])) name += " (" + titleRootAccess(levels[0]) + ")";
+      if (levels.some(function (l) { return /^L[1-5]$/.test(l); }) && /^(supra|infra)neural$/.test(item.approach || "")) name += ", " + item.approach;
+      return name;
+    case "lumbar_root_sequence":
+      return item.intent === "epidural_then_root"
+        ? lv + " TFESI (" + (levels.length === 1 && titleRootAccess(levels[0]) ? titleRootAccess(levels[0]) + "; " : "") + "steroid only), then " + lv + " SNRB"
+        : lv + " SNRB";
+    case "l_ilesi": return lv + " ILESI";
+    case "caudal": return "Caudal ESI";
+    case "lumbar_facet": return lv + " IA facet" + (jointCount(item) === 1 ? "" : "s");
+    case "l_mbb":
+      var medial = levels.filter(function (l) { return l !== "L5 dorsal ramus"; });
+      parts = medial.length ? [titleLevels(medial) + " MBB"] : [];
+      if (levels.indexOf("L5 dorsal ramus") !== -1) parts.push("L5 DR block");
+      return (parts.length ? parts.join(" + ") : "[levels not selected] MBB") + titleIntent(item);
+    case "t_mbb": return lv + " MBB" + titleIntent(item);
+    case "ton": return "TON" + titleIntent(item);
+    case "c_mbb":
+      parts = item.toggles && item.toggles.ton ? ["TON"] : [];
+      if (levels.length) parts.push(titleNerveRange(levels) + " MBB");
+      return (parts.length ? parts.join(" + ") : "[levels not selected] MBB") + titleIntent(item);
+    case "esp": return lv + " ESP";
+    case "sij": return "SIJ IA injection";
+    case "hip_ia_fl": return "hip IA injection";
+    case "knee_ia": return "knee IA injection";
+    case "peritroch":
+      var bursae = { "Subgluteus maximus": "GT", "Subgluteus medius": "subgluteus medius", "Subgluteus minimus": "subgluteus minimus" };
+      parts = levels.map(function (l) { return bursae[l] || l; });
+      return (parts.length ? parts.join(", ") : "peritrochanteric") + " bursa injection" + (parts.length > 1 ? "s" : "");
+    case "tpi":
+      name = (item.muscle || "").replace(/^the\s+/i, "").trim();
+      if (/^gluteal muscles$/i.test(name)) name = "gluteal";
+      var count = String(item.siteCount || "").trim();
+      return (name ? name + " " : "") + "TPI" + (/^[1-9]\d*$/.test(count) ? " ×" + count : "");
+    case "impar":
+      parts = [];
+      if (levels.indexOf("Ganglion impar") !== -1) parts.push("Ganglion impar block");
+      var joints = [];
+      if (levels.indexOf("Sacrococcygeal joint") !== -1) joints.push("sacrococcygeal");
+      if (levels.indexOf("Co1/2 joint") !== -1) joints.push("Co1–2");
+      if (joints.length) parts.push(joints.join("/") + " IA injection" + (joints.length > 1 ? "s" : ""));
+      return parts.length ? parts.join(" + ") : "[targets not selected] coccygeal injection";
+    default: return procName(item);
+    }
+  }
+
   function procedureLine() {
     // Landmark cases carry no guidance phrase at all — not here and not in the body.
-    var prefix = state.modality === "fluoro" ? "Fluoroscopy-guided"
-               : state.modality === "us" ? "US-guided" : "";
+    var prefix = state.modality === "fluoro" ? "Fluoro"
+               : state.modality === "us" ? "US" : "";
     if (!state.selected.length) return "Procedure performed: [none selected]";
-
-    var sides = {};
-    state.selected.forEach(function (i) { sides[i.lat] = true; });
-    var keys = Object.keys(sides);
-    var shared = keys.length === 1 ? keys[0] : null;
-
     var names = state.selected.map(function (item) {
-      return shared ? procName(item) : item.lat + " " + procName(item);
+      var side = isMidline(item.key) ? "" : { left: "LEFT", right: "RIGHT", bilateral: "B/L" }[item.lat] || "";
+      return (side ? side + " " : "") + titleName(item);
     });
-
-    var joined;
-    if (names.length === 1) joined = names[0];
-    else if (names.length === 2) joined = names[0] + " and " + names[1];
-    else joined = names.slice(0, -1).join(", ") + ", and " + names[names.length - 1];
-
-    var lead = prefix ? prefix + " " : "";
-    var line = "Procedure performed: " + lead + (shared && shared !== "midline" ? shared + " " : "") + joined;
-    return prefix ? line : line.replace("Procedure performed: ", "Procedure performed: ").replace(/^(Procedure performed: )(.)/, function (m, a, c) { return a + c.toUpperCase(); });
+    return "Procedure performed: " + (prefix ? prefix + ", " : "") + ensurePeriod(names.join(" + "));
   }
 
   function screenBlock() {
@@ -2915,8 +3017,10 @@
             : state.infection === "yes" ? ("Active infection present" + (state.infectionText.trim() ? " — " + state.infectionText.trim() : ""))
             : "[NOT ANSWERED]";
 
-    var alg = state.allergies === "nkda" ? "NKDA"
-            : state.allergies === "yes" ? (state.allergyText.trim() || "[allergies not specified]")
+    var knownAllergy = state.allergyText.trim();
+    var alg = knownAllergy ? knownAllergy
+            : state.allergies === "nkda" ? "NKDA"
+            : state.allergies === "yes" ? "[allergies not specified]"
             : "[NOT ANSWERED]";
 
     var lines = ["Preprocedural screen:",
@@ -3033,7 +3137,7 @@
   }
 
   function cancelledNote(reasons) {
-    var head = ["PROCEDURE NOTE", "Procedure performed: None — elective procedure cancelled."];
+    var head = ["Procedure performed: None — elective procedure cancelled."];
     if (state.selected.length) {
       head.push("Planned: " + procedureLine().replace("Procedure performed: ", ""));
     }
@@ -3045,7 +3149,14 @@
       "The patient will be rebooked at the earliest available opportunity once it is safe to proceed.";
   }
 
-  function paragraphFor(item, idx, prevPos) {
+  function paragraphFor(item, idx, prevPos, omitRepeatedLocal) {
+    // A dictated technical exception replaces the entire target paragraph, rather
+    // than appending a failed attempt after a default claim of successful access.
+    if ((item.techniqueOverride || "").trim()) {
+      var replacement = ensurePeriod(item.techniqueOverride.trim());
+      if (idx > 0 && item.pos !== prevPos && POS[item.pos]) replacement = POS[item.pos].repos + " " + replacement;
+      return replacement;
+    }
     var pp = PROCS[item.key];
     var hasT = pp.text && pp.text[state.modality];
     var text = (pp.body && !hasT) ? pp.body(item, idx > 0, bodySide(item))
@@ -3059,7 +3170,7 @@
         text = t.at === "start" ? t.text + " " + text : text + " " + t.text;
       });
     }
-    if (item.local && pr.localText) {
+    if (item.local && pr.localText && !omitRepeatedLocal) {
       text = (pr.localNeedle
         ? "Local anesthetic was infiltrated with a " + pr.localNeedle + "."
         : pr.localText) + " " + text;
@@ -3092,15 +3203,20 @@
 
     var out = [];
     var prevPos = null;
+    var localStatements = {};
     state.selected.forEach(function (item, idx) {
-      var para = paragraphFor(item, idx, prevPos);
+      var pr = PROCS[item.key];
+      var localStatement = pr.localNeedle ? "Local anesthetic was infiltrated with a " + pr.localNeedle + "." : pr.localText;
+      var repeatedLocal = item.local && localStatement && localStatements[localStatement];
+      if (item.local && localStatement && !(item.techniqueOverride || "").trim()) localStatements[localStatement] = true;
+      var para = paragraphFor(item, idx, prevPos, repeatedLocal);
       out.push(idx === 0 ? "Procedure note: " + open + " " + para : para);
       prevPos = item.pos;
     });
 
     // Fluoroscopy paragraphs each state contrast findings and vascular uptake, so the blanket
     // line is redundant there. Ultrasound paragraphs do not mention aspiration, so it stays.
-    if (state.modality === "us") {
+    if (state.modality === "us" && !state.selected.some(function (item) { return (item.techniqueOverride || "").trim(); })) {
       out.push("Aspiration was negative for blood before injection at each site. Injectate spread at each target was visualized under real-time ultrasound.");
     }
     return out.join("\n\n");
@@ -3137,7 +3253,7 @@
                 : (p.injLabelFn ? p.injLabelFn(item) : p.injLabel);
       if (mixed) label = upperFirst(item.lat) + " " + deCap(label);
       // A card that fills more than one syringe writes more than one line.
-      if (p.injLinesFn) {
+      if (p.injLinesFn && !item.injTouched) {
         p.injLinesFn(item).forEach(function (l) {
           // { bare: true } prints flush, so one syringe can head a group of targets.
           if (l && typeof l === "object") { lines.push(l.text); return; }
@@ -3161,9 +3277,9 @@
 
     var comp;
     if (events.length) {
-      comp = "Transient " + (events.length === 2 ? events[0] + " and " + events[1] : events[0]) + ".";
+      comp = upperFirst(events.length === 2 ? events[0] + " and " + events[1] : events[0]) + ".";
       if (state.complications.trim()) comp += " " + ensurePeriod(state.complications.trim());
-      comp += " The patient recovered without further issue.";
+      // Recovery is a separate clinical observation, not implied by selecting an event.
     } else if (state.complications.trim()) {
       comp = ensurePeriod(state.complications.trim());
     } else {
@@ -3171,7 +3287,11 @@
     }
 
     var discharge = [];
-    if (state.aftercare && state.aftercareText.trim()) {
+    var hasEvent = events.length > 0 || !!state.complications.trim();
+    // An actual adverse event overrides routine uncomplicated aftercare. Explicit
+    // recovery/disposition text may still be entered in the existing aftercare field.
+    if (state.aftercare && state.aftercareText.trim() &&
+        !(hasEvent && state.aftercareText.trim() === AFTERCARE_DEFAULT)) {
       // The longest observation any selected procedure requires governs the whole case.
       var mins = 15;
       state.selected.forEach(function (i) { if (PROCS[i.key].obs > mins) mins = PROCS[i.key].obs; });
@@ -3323,9 +3443,9 @@
 
     var performedBy = "Performed by: " + (state.physician.trim() || "[operator not set]") +
       (state.assist.trim() ? ", assisted by " + state.assist.trim() : "");
-    // Diagnosis and date come from the chart, not from here — the note opens on the
-    // PROCEDURE NOTE heading. The date field stays: it drives the follow-up billing threshold.
-    var head = ["PROCEDURE NOTE", procedureLine(), performedBy];
+    // The surrounding chart supplies its headings; use inline labels and connected
+    // procedure paragraphs rather than another heading hierarchy.
+    var head = [procedureLine(), performedBy];
     return head.concat([
       "",
       consentParagraph(),
@@ -3688,13 +3808,14 @@
           }));
         }
         (p.toggles || []).forEach(function (t) {
+          if (t.key === "diagnostic" && isCervicalBlock(item.key) && state.modality !== "fluoro") return;
           // There is no superior costotransverse ligament below the ribs, so the ITP
           // extension cannot be offered on a lumbar level.
           if (t.key === "itp") {
             var lumbarOnly = (item.levels || []).some(function (l) { return /^L/.test(l); });
             if (lumbarOnly) { item.toggles.itp = false; return; }
           }
-          var cb = checkbox(t.label, !!item.toggles[t.key], function (v) {
+          var cb = checkbox(t.label, t.key === "diagnostic" ? diagnosticSelected(item) : !!item.toggles[t.key], function (v) {
             item.toggles[t.key] = v;
             renderAll();
           });
@@ -3829,7 +3950,7 @@
         mrow.appendChild(mixSel("Local anesthetic", "la", LA_AGENTS));
         if (item.key !== "lumbar_root_sequence" || item.intent === "epidural_then_root") {
           mrow.appendChild(mixNum("Steroid cc", "stVol", "58px"));
-          mrow.appendChild(mixSel("Steroid", "st", item.key === "lumbar_root_sequence" ? ["Dexamethasone 10 mg/mL"] : STEROIDS));
+          mrow.appendChild(mixSel("Steroid", "st", STEROIDS));
         }
         if (item.key !== "lumbar_root_sequence") mrow.appendChild(mixNum("Split between", "split", "52px"));
         ijWrap.appendChild(mrow);
@@ -3851,7 +3972,7 @@
         var ijInp = document.createElement("input");
         ijInp.type = "text";
         ijInp.value = injText(item);
-        ijInp.placeholder = item.key === "other" ? "e.g. 4cc lidocaine 1% + 1cc Methylprednisolone 40 mg/mL" : "";
+        ijInp.placeholder = item.key === "other" ? "e.g. 4cc lidocaine 1% + 1cc " + NON_EPIDURAL_STEROID : "";
         ijInp.addEventListener("input", function () {
           item.inj = ijInp.value; item.injTouched = true; renderOutput();
         });
@@ -3908,12 +4029,27 @@
       devWrap.className = "field wide";
       var devId = "d" + (uidSeq++);
       var devLab = document.createElement("label");
-      devLab.textContent = "Deviation / added detail";
+      var overrideWrap = document.createElement("div");
+      overrideWrap.className = "field wide";
+      var overrideId = "o" + (uidSeq++);
+      var overrideLab = document.createElement("label");
+      overrideLab.textContent = "Replace technique paragraph (for a changed or limited procedure)";
+      overrideLab.setAttribute("for", overrideId);
+      var overrideTa = document.createElement("textarea");
+      overrideTa.id = overrideId;
+      overrideTa.value = item.techniqueOverride || "";
+      overrideTa.placeholder = "Document the actual technique, contrast findings and stopping point. Replaces routine technique wording, including local and toggle sentences; update injectate and aftercare separately.";
+      overrideTa.addEventListener("input", function () { item.techniqueOverride = overrideTa.value; renderOutput(); });
+      overrideWrap.appendChild(overrideLab);
+      overrideWrap.appendChild(overrideTa);
+      grid.appendChild(overrideWrap);
+
+      devLab.textContent = "Additional non-conflicting detail";
       devLab.setAttribute("for", devId);
       var devTa = document.createElement("textarea");
       devTa.id = devId;
       devTa.value = item.dev;
-      devTa.placeholder = "e.g. effusion noted; approach abandoned and changed";
+      devTa.placeholder = "e.g. effusion noted. For abandoned or altered technique, use Replace technique paragraph above.";
       devTa.addEventListener("input", function () { item.dev = devTa.value; renderOutput(); });
       devWrap.appendChild(devLab);
       devWrap.appendChild(devTa);
@@ -3940,6 +4076,8 @@
     if (state.antiplatelet === "yes" && !state.apLastDay) missing.push("Antiplatelet last dose day");
     state.selected.forEach(function (item) {
       var pr = PROCS[item.key];
+      if (item.key === "ton" && state.modality !== "fluoro")
+        missing.push("TON — use the cervical medial branch card with TON selected for US");
       // A card can carry a target that stands on its own: a third occipital nerve block
       // with no medial branch levels is a complete procedure, not an unanswered field.
       if (pr.levels && !item.levels.length && !(pr.levelsOptionalIf && pr.levelsOptionalIf(item)))

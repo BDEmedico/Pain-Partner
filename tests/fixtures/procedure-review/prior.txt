@@ -1,0 +1,30 @@
+SYNTHETIC TEST CASE — entirely invented, no patient identifiers.
+A 66-year-old woman with left anterior thigh pain and chronic low back pain.
+MEDICAL HISTORY
+Hypertension.
+SURGICAL HISTORY
+Appendectomy.
+CURRENT MEDICATIONS
+Amlodipine 5 mg daily.
+ALLERGIES
+NKDA. No contrast allergy.
+SOCIAL HISTORY
+Lives with her spouse. Retired. No tobacco use.
+PREVIOUS PAIN MEDICATIONS
+Gabapentin — dizziness.
+PREVIOUS / CURRENT NON-PHARM
+Physiotherapy and home exercises.
+INVESTIGATIONS
+Lumbar MRI: left L4–5 foraminal narrowing.
+PREVIOUS PAIN PROCEDURES
+None.
+PAIN HISTORY
+Left anterior thigh pain worsens with prolonged standing. Home exercises help her back pain.
+EXAM
+Motor: L2–S1 5/5 bilaterally.
+Sensation: L2–S1 intact to light touch bilaterally.
+Reflexes: Patellar and Achilles 2+ bilaterally.
+IMPRESSION
+Possible left L4 radicular pain.
+PLAN
+Left L4 selective nerve root block.

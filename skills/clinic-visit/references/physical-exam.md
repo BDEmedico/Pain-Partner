@@ -6,23 +6,23 @@
 - Expand a normal macro only when Victoria explicitly invokes it for the current encounter. This shorthand represents her report of the agreed examination, not a default examination performed on every patient.
 - Specific findings override the corresponding normal finding. Preserve other invoked normal findings. Example: "normal back exam, Fortin positive" retains the back macro but replaces its SIJ line with `- SIJ: Fortin positive [right|left|bilateral], cluster negative.` Pain across the back belongs in the history, unless specifically an examination finding.
 - Include hip and GT components whenever the normal back macro is invoked. In a back-examination scaffold include these headings, but do not fabricate results if no macro or findings were supplied.
-- If the impression lacks relevant examination support, insert a focused selectable prompt for findings Victoria may have omitted. Do not infer that a positive finding occurred from the diagnosis. Unresolved prompts are not completed clinical findings and must be selected, amended or removed before signing.
+- If a clinically material assessment lacks examination support, flag the specific gap outside the note. Offer a focused selectable prompt there; embed one only if requested or useful for a genuine unresolved clinician-known finding. Do not infer a positive result from the diagnosis. Unresolved prompts are not completed clinical findings.
 - Use the exact compact multi-select syntax below. Several maneuvers may be selected. Selection/highlighting depends on the destination editor and is not guaranteed by plain chat text. These approved prompts override older universal null-first syntax for examination prompts.
 - Keep the normal SIJ line short. Do not expand or invent the maneuvers underlying "cluster negative" and do not repeatedly request a definition.
 - Positive provocation findings should reflect the patient's typical pain where applicable. Preserve distinctions between pain, weakness, restriction and radiating symptoms.
-- Use `EXAM virtual follow up` for phone/virtual follow-ups. Preserve historical findings under `Previous EXAM`, with source/date where known. Do not label an in-person follow-up virtual or carry previous findings forward as current.
+- Preserve historical findings under `Previous EXAM` (clinic) or `Referral exam`, with date where known. When telephone modality is already clear, omit a redundant no-examination section. Do not carry previous findings forward as current.
 - Check the whole note for clinical consistency. A normal macro does not establish a diagnosis. Keep material questions outside the copyable note, with focused prompts where helpful.
 
 ## Output consistency
 
-For explicitly supplied normal lower limb findings or invoked shorthand, always use the motor and sensory lines below. Victoria's explicit corrections override the transcript, and specific abnormalities override only their corresponding normal findings. Do not expand partial testing to untested roots or assume missing findings are normal. Check motor, sensation and reflexes before delivery. Place unresolved examination questions below the note unless a focused square-bracket choice is needed in the draft.
+Mandatory final examination check: do not replace supported normal findings or Victoria's accepted normal shorthand with vague phrases such as `strength preserved`, `tested distributions`, or `positional and provocative manoeuvres`. Use `Motor: L2–S1 5/5 bilaterally.` and `Sensation: L2–S1 intact to light touch bilaterally.` when supported or explicitly confirmed by Victoria, retaining specific abnormalities. Uncertainty about one examination component must not dilute other supported findings. Omit an unidentifiable test and flag it briefly outside the note when clinically material; do not invent a test name, result, grade or untested distribution. Compare every EXAM line with these rules before delivery, including after revisions.
 
 ## Normal back exam
 
 ```text
 EXAM
 - Motor: L2–S1 5/5 bilaterally. Heel and toe walking intact.
-- Sensation: Intact and symmetrical to light touch in L2–S1 dermatomes.
+- Sensation: L2–S1 intact to light touch bilaterally.
 - Reflexes: Patellar and Achilles 2+ bilaterally.
 - SIJ: Fortin negative, cluster negative.
 - Hip: ROM w/o typical pain. Log roll and FADDIR negative.

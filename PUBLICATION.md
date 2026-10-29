@@ -27,3 +27,18 @@ When the existing plugin's editor/publisher is available, replace its skill sour
 5. The referral skill still follows the dedicated Dr. Holowaty format.
 
 Do not report publication complete until those installed resources have been verified.
+
+## Procedure-workflow repair release
+
+Before publishing, run `bash scripts/check_procedure_workflow.sh`. The portable bundle now includes the narrow verifier executable and schema reference under `clinic-visit`, along with the editable-HTML copy, source-based workflow and synthetic layout candidate.
+
+Update the existing plugin's clinic skill, references and HTML together. Do not install a competing output-review policy. The verifier is a required stage of the clinic skill. Its semantic review consults the same sources and policies.
+
+After publication, verify in a **new chat** that the installed version:
+- reads the current HTML entries and shared logic;
+- retains the previous complete chart;
+- emits inline procedure fields without the old standalone wrapper;
+- preserves known allergies and uses the authorized NKDA draft default otherwise;
+- can access/run the packaged verifier, or explicitly reports manual review if execution is unavailable.
+
+Do not mark the exact synthetic example visually approved until Victoria accepts it. No tested host-level pre-response hook is available; publication does not make the verifier impossible to skip.

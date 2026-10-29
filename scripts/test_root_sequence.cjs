@@ -10,6 +10,7 @@ assert(a.ORDER.includes('lumbar_root_sequence'));
 const l5=a.makeItem('lumbar_root_sequence','left');l5.levels=['L5'];l5.intent='epidural_then_root';
 const l4=a.makeItem('lumbar_root_sequence','left');l4.levels=['L4'];l4.intent='root_only';
 a.state.selected=[l5,l4];
+assert.equal(a.procedureLine(),'Procedure performed: Fluoro, LEFT L5 TFESI (L5–S1; steroid only), then L5 SNRB + LEFT L4 SNRB.');
 let text=a.injectateBlock();
 assert(text.includes('Left L5 epidural: 1 cc Dexamethasone 10 mg/mL (steroid only)'));
 assert(text.includes('Left L4 nerve root: 1 cc bupivacaine 0.5%'));
@@ -23,9 +24,12 @@ assert(p.mixTextFn(l5).includes('2 cc (1.5 cc initially + 0.5 cc after repositio
 l5.rootRepeatSpread='predominantly nerve root spread with minor epidural extension';assert(p.body(l5).includes(l5.rootRepeatSpread));
 l5.rootSymptoms='Familiar buttock pain occurred during both phases';assert(p.body(l5).includes(l5.rootSymptoms));
 l5.intent='root_only';assert(!p.mixTextFn(l5).includes('epidural:'));assert(!p.body(l5).includes('withdrawn slightly'));
+assert.equal(a.procedureLine(),'Procedure performed: Fluoro, LEFT L5 SNRB + LEFT L4 SNRB.');
 l5.intent='epidural_then_root';l5.repeatContrast='';assert(a.unanswered().some(s=>s.includes('repeat contrast')));
 l5.repeatContrast='1';l5.lat='bilateral';assert(a.unanswered().some(s=>s.includes('one side')));
 l5.lat='left';l5.levels=['L4','L5'];assert(a.unanswered().some(s=>s.includes('exactly one')));
 // Existing TFESI still uses its separate standard pathway.
 const standard=a.makeItem('tfesi','right');standard.levels=['L5'];standard.approach='supraneural';assert(a.PROCS.tfesi.mixFlush);assert(a.PROCS.tfesi.body(standard,0,'right').includes('epidural and perineural flow'));
-console.log('PASS: syntax, mixed L5/L4 sequence, contrast accounting/edits, mode switching, symptom text, validation and standard TFESI regression');
+a.state.selected=[standard];
+assert.equal(a.procedureLine(),'Procedure performed: Fluoro, RIGHT L5 TFESI (L5–S1), supraneural.');
+console.log('PASS: concise SNRB/TFESI sequence titles, syntax, mixed L5/L4 sequence, contrast accounting/edits, mode switching, symptom text, validation and standard TFESI regression');

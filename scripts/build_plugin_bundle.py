@@ -11,12 +11,14 @@ DEST = ROOT / 'dist' / 'pain-partner-update.zip'
 def build():
     files = {}
     for path in sorted((ROOT / 'skills').rglob('*')):
-        if path.is_file():
+        if path.is_file() and '__pycache__' not in path.parts and path.suffix != '.pyc':
             files[path.relative_to(ROOT).as_posix()] = path.read_bytes()
     preferences = (ROOT / 'WORKFLOW-PREFERENCES.md').read_bytes()
     for name in ('clinic-visit', 'referral-letter'):
         files[f'skills/{name}/references/preferences.md'] = preferences
     files['skills/clinic-visit/assets/procedure-note-builder.html'] = (ROOT / 'procedure-note-builder.html').read_bytes()
+    files['skills/clinic-visit/scripts/verify_procedure_note.py'] = (ROOT / 'scripts/verify_procedure_note.py').read_bytes()
+    files['skills/clinic-visit/references/verifier.md'] = (ROOT / 'scripts/PROCEDURE_VERIFIER.md').read_bytes()
     files['PUBLICATION.md'] = (ROOT / 'PUBLICATION.md').read_bytes()
     checksums = {name: hashlib.sha256(data).hexdigest() for name, data in files.items()}
     files['SHA256.json'] = (json.dumps(checksums, indent=2) + '\n').encode()
