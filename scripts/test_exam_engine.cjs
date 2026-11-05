@@ -1,0 +1,26 @@
+'use strict';
+const assert=require('assert/strict');
+const E=require('./exam_engine.cjs');
+let tests=0;
+function test(name,fn){fn();tests++;console.log('PASS '+name);}
+const catalog={regions:{neck:{lines:[{id:'motor',text:'- Motor: [normal|examCspinemotor].'},{id:'vascular',text:'[null|- Pulses palpable B/L.]'}]}},macros:{examCspinemotor:'[Right|Left]: elbow flexion [5|4|3|2]/5. Contralateral 5/5.'}};
+test('No implicit selections or normal findings',()=>{const r=E.render({region:'neck'},catalog);assert(!r.ready);assert(r.text.includes('[normal|examCspinemotor]'));assert.equal(E.render({region:'neck'},catalog,'final').text,'');});
+test('Explicit null deletes entire group; missing is distinct',()=>{assert.equal(E.renderLine('[null|- Normal.]',{}).text,'[null|- Normal.]');assert.equal(E.renderLine('[null|- Normal.]',{g0:0}).text,'');});
+test('Nested null does not require hidden children',()=>{const text='[null|- FAIR [negative|positive].]';const r=E.renderLine(text,{g0:0});assert.equal(r.text,'');assert.equal(r.unresolved.length,0);assert.equal(r.controls.length,1);});
+test('Nested selected group retains stable offsets',()=>{const text='[null|- FAIR [negative|positive].]';const r=E.renderLine(text,{g0:1,g13:1});assert.equal(r.text,'- FAIR positive.');});
+test('Null punctuation cleanup is local',()=>{assert.equal(E.renderLine('- ROM full, [null|painful].',{g12:0}).text,'- ROM full.');});
+test('Curly groups remain opaque',()=>{const r=E.renderLine('{null|[Right|Left]}',{b0:0});assert.equal(r.text,'{null|[Right|Left]}');assert.equal(r.unresolved[0].kind,'opaque');});
+test('Malformed groups fail rather than invent interpretation',()=>{assert.throws(()=>E.parse('[a|{b]'));assert.throws(()=>E.parse('[a|b'));assert.throws(()=>E.parse('normal]'));});
+test('Selecting a macro expands its unresolved child groups',()=>{const r=E.renderLine('- Motor: [normal|examCspinemotor].',{g9:1},catalog.macros);assert(r.text.includes('[Right|Left]'));assert(r.controls.some(c=>c.id.includes('mexamCspinemotor')));});
+test('Selecting all macro grades does not confirm contralateral normality',()=>{const state={region:'neck',rows:{motor:{selections:{g9:1}},vascular:{status:'omitted'}}};let r=E.render(state,catalog);for(const c of r.rows[0].controls)if(c.value===null)state.rows.motor.selections[c.id]=0;r=E.render(state,catalog,'final');assert(!r.ready);assert.equal(r.text,'');state.rows.motor.confirmed=true;r=E.render(state,catalog,'final');assert(r.ready);assert(r.text.includes('Contralateral 5/5.'));});
+test('Undefined macros cannot become a completed examination',()=>{const r=E.renderLine('examNoDefinition',{},{});assert.equal(r.text,'examNoDefinition');assert.equal(r.unresolved[0].kind,'macro');});
+test('Raw macros require explicit support or selected option',()=>{const r=E.renderLine('examCspinemotor',{},catalog.macros);assert.equal(r.text,'examCspinemotor');assert.equal(r.unresolved[0].kind,'macro');});
+test('Supported literal override preserves non-template grades and bilateral findings',()=>{const r=E.render({region:'neck',rows:{motor:{status:'supported',text:'- Motor: RIGHT C5 0/5, LEFT C5 4-/5.'},vascular:{status:'omitted'}}},catalog,'final');assert(r.ready);assert(r.text.includes('RIGHT C5 0/5, LEFT C5 4-/5.'));});
+test('Array selection is explicit and cannot combine null',()=>{assert.equal(E.renderLine('[Right|Left|tender]',{g0:[0,2]}).text,'Right tender');assert(E.renderLine('[null|normal]',{g0:[0,1]}).issues.length);});
+test('Blank measurements block final output even after confirmation',()=>{const r=E.render({region:'neck',rows:{motor:{status:'supported',text:'ER ___ degrees.'},vascular:{status:'omitted'}}},catalog,'final');assert(!r.ready);assert.equal(r.text,'');});
+test('Invalid indices and cyclic macros fail closed',()=>{assert(E.renderLine('[a|b]',{g0:3}).issues.length);assert(E.renderLine('examLoop',{}, {examLoop:'examLoop'},{expandRawMacros:true}).issues.length);});
+test('Expanded macro does not leave duplicate punctuation',()=>{assert.equal(E.renderLine('[examA|normal].',{g0:0},{examA:'Normal.'}).text,'Normal.');});
+test('A label left by null is unresolved, never a completed finding',()=>{assert(E.renderLine('- Motor: [null|normal].',{g9:0}).unresolved.some(x=>x.kind==='empty_label'));});
+test('Only the selected exam section changes',()=>{const chart='MEDICAL HISTORY\r\nA.\r\n\r\nEXAM\r\n- Old.\r\n\r\n\r\nIMPRESSION\r\nKeep this exactly.\r\n\r\nPLAN\r\n- Unchanged.\r\n';const expected=chart.replace('EXAM\r\n- Old.','EXAM\n- New.');assert.equal(E.replaceSection(chart,'EXAM','EXAM\n- New.'),expected);});
+test('Historical and current sections cannot be confused',()=>{const chart='Previous EXAM\n- Prior.\n\nEXAM\n- Current.\n\nIMPRESSION\nKeep.';assert.equal(E.replaceSection(chart,'EXAM','EXAM\n- Updated.'),'Previous EXAM\n- Prior.\n\nEXAM\n- Updated.\n\nIMPRESSION\nKeep.');assert.throws(()=>E.replaceSection('EXAM\na\nEXAM\nb','EXAM','EXAM\nc'));});
+console.log(`${tests} examination engine tests passed.`);

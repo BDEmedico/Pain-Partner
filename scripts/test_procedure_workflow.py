@@ -129,7 +129,7 @@ class WorkflowIntegration(unittest.TestCase):
             self.assertNotIn('last dose Saturday', reference)
             self.assertNotIn('Stop point (standing rule)', reference)
         macro = (ROOT / 'skills/clinic-visit/references/physical-exam.md').read_text()
-        self.assertIn('- Sensation: L2–S1 intact to light touch bilaterally.', macro)
+        self.assertIn('- Sensation: L2–S1 intact to light touch B/L.', macro)
 
 
 if __name__ == '__main__':

@@ -1,9 +1,11 @@
 # Agreed physical examination macros
 
+For the assistant-operated clickable review workflow, use `exam-workflow.md` and the editable `exam-builder.html` (bundled under `assets/`). Its selectable lumbar/cervical/shoulder scaffolds and detailed macros are **not observed findings** and do not enlarge the normal shorthand definitions below. Populate supported components; use native choices for remaining findings. Selecting `null` deletes the containing choice, not a normal/negative finding. Missing detailed macros and unspecified brace semantics stay unresolved rather than being invented.
+
 ## Assembly rules
 
 - Extract examination findings from the entire encounter dictation, including findings spoken during the impression and plan. Assemble them under EXAM.
-- Expand a normal macro only when Victoria explicitly invokes it for the current encounter. This shorthand represents her report of the agreed examination, not a default examination performed on every patient.
+- Expand a whole regional normal macro only when Victoria invokes it for the current encounter, including "otherwise normal" when the region and exceptions are clear. A normal finding for one component invokes only that component's agreed wording, not the whole regional macro. Neither requires Victoria to repeat the numerical grades already represented by her normal shorthand.
 - Specific findings override the corresponding normal finding. Preserve other invoked normal findings. Example: "normal back exam, Fortin positive" retains the back macro but replaces its SIJ line with `- SIJ: Fortin positive [right|left|bilateral], cluster negative.` Pain across the back belongs in the history, unless specifically an examination finding.
 - Include hip and GT components whenever the normal back macro is invoked. In a back-examination scaffold include these headings, but do not fabricate results if no macro or findings were supplied.
 - If a clinically material assessment lacks examination support, flag the specific gap outside the note. Offer a focused selectable prompt there; embed one only if requested or useful for a genuine unresolved clinician-known finding. Do not infer a positive result from the diagnosis. Unresolved prompts are not completed clinical findings.
@@ -15,15 +17,27 @@
 
 ## Output consistency
 
-Mandatory final examination check: do not replace supported normal findings or Victoria's accepted normal shorthand with vague phrases such as `strength preserved`, `tested distributions`, or `positional and provocative manoeuvres`. Use `Motor: L2–S1 5/5 bilaterally.` and `Sensation: L2–S1 intact to light touch bilaterally.` when supported or explicitly confirmed by Victoria, retaining specific abnormalities. Uncertainty about one examination component must not dilute other supported findings. Omit an unidentifiable test and flag it briefly outside the note when clinically material; do not invent a test name, result, grade or untested distribution. Compare every EXAM line with these rules before delivery, including after revisions.
+For a current lumbar examination, render clinician-confirmed normal components as follows:
+
+| Supported normal component | Agreed output |
+| --- | --- |
+| Lower-limb motor | `- Motor: L2–S1 5/5 B/L.` |
+| Lower-limb light-touch sensation | `- Sensation: L2–S1 intact to light touch B/L.` |
+| Patellar and Achilles reflexes | `- Reflexes: Patellar and Achilles 2+ B/L.` |
+
+This translates Victoria's clinical shorthand; it does not infer normality from silence. A clinician's confirmation or correction that a component was normal is sufficient. Test instructions ("push", "relax"), an isolated "good" without an identifiable finding, or a reflex merely being elicited do not independently establish the full normal component. Preserve explicitly limited testing without adding untested distributions or grades. Component-only normal findings do not add gait, hip, GT or SIJ results.
+
+Specific abnormalities replace only the affected normal finding. For example, "normal back exam except left ankle dorsiflexion 4/5" becomes `- Motor: L2–S1 5/5 B/L except left ankle dorsiflexion 4/5.` Keep the other invoked findings unless contradicted. Uncertainty about one component must not weaken the others.
+
+Before delivering any consultation, follow-up, procedure note or revision, check both completeness and wording against the source: every supported component must be retained. When normality is established, do not substitute `normal`, `present`, `elicited`, `strength preserved` or `tested distributions` for the agreed grades and distributions. Do not use unnamed `positional and provocative manoeuvres`. Omit an unidentifiable test and flag it briefly outside the note when clinically material. The source-linked exam check verifies declared expected wording; it cannot decide what the transcript establishes.
 
 ## Normal back exam
 
 ```text
 EXAM
-- Motor: L2–S1 5/5 bilaterally. Heel and toe walking intact.
-- Sensation: L2–S1 intact to light touch bilaterally.
-- Reflexes: Patellar and Achilles 2+ bilaterally.
+- Motor: L2–S1 5/5 B/L. Heel and toe walking intact.
+- Sensation: L2–S1 intact to light touch B/L.
+- Reflexes: Patellar and Achilles 2+ B/L.
 - SIJ: Fortin negative, cluster negative.
 - Hip: ROM w/o typical pain. Log roll and FADDIR negative.
 - GT: No pain with palpation or resisted hip abduction.

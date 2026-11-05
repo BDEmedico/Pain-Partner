@@ -1,0 +1,357 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Pain Partner · Booking</title>
+<style>
+:root{--ink:#18323b;--muted:#567078;--line:#cfdddd;--teal:#176b69;--soft:#edf5f3;--amber:#8c550b;--paper:#fff;--bg:#f5f7f6}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 system-ui,sans-serif}header{background:#173e45;color:white;padding:26px max(24px,calc((100vw - 1360px)/2))}header p{margin:4px 0 0;color:#cce1e0}h1{font-size:28px;margin:0;font-weight:650}h2{font-size:19px;margin:0 0 14px}h3{font-size:16px;margin:18px 0 8px}main{max-width:1408px;margin:24px auto;padding:0 24px;display:grid;grid-template-columns:minmax(0,1.12fr) minmax(360px,1fr);gap:24px}.card{background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:22px;margin-bottom:18px}.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.wide{grid-column:1/-1}label{display:block;font-weight:550;font-size:14px}input,select,textarea,button{font:inherit}input:not([type=checkbox]),select,textarea{width:100%;border:1px solid #9fb7bb;border-radius:6px;padding:9px 10px;background:white;color:var(--ink);margin-top:5px}input[type=checkbox]{width:18px;height:18px;accent-color:var(--teal);flex-shrink:0}input:focus,select:focus,textarea:focus,button:focus-visible{outline:3px solid #7fc9c5;outline-offset:2px}button{border:1px solid var(--teal);border-radius:7px;background:white;color:var(--teal);padding:9px 14px;font-weight:600;cursor:pointer}button.primary{background:var(--teal);color:white}button:disabled{opacity:.42;cursor:not-allowed}.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.check{display:flex;align-items:flex-start;gap:9px;font-weight:450;padding:9px 0}.muted{font-size:13px;color:var(--muted);margin:7px 0}.procedure{padding:15px;background:#f6f9f8;border:1px solid var(--line);border-radius:8px;margin:12px 0}.procedure-top{display:flex;align-items:center;justify-content:space-between}.procedure-top button{font-size:13px;padding:5px 9px}.policy{padding:10px 12px;border-left:3px solid var(--teal);background:var(--soft);font-size:14px;margin:12px 0}.drugs{display:grid;grid-template-columns:1fr 1fr;gap:0 10px}.pill{display:inline-block;border-radius:20px;background:#e6efed;padding:3px 10px;font-size:12px}.output{position:sticky;top:20px;align-self:start}.status{padding:12px;border-radius:7px;background:#fff4df;color:var(--amber);margin:12px 0}.status.ready{color:#11564e;background:#e3f4eb}#issues{padding-left:20px;font-size:14px}#issues a{color:var(--amber)}#output{font:14px/1.65 ui-monospace,monospace;min-height:450px;resize:vertical;background:#fbfdfc}#copy-result{min-height:22px;font-size:13px}.review{padding:12px;background:var(--soft);border-radius:7px;margin:12px 0}details{margin-top:12px}summary{cursor:pointer;font-size:14px;font-weight:550}footer{max-width:1408px;margin:0 auto 25px;padding:0 24px;color:var(--muted);font-size:13px}[hidden]{display:none!important}@media(max-width:900px){main{grid-template-columns:1fr}.output{position:static}}@media(max-width:480px){main{padding:0 12px}.card{padding:16px}.grid{grid-template-columns:1fr}.wide{grid-column:auto}}
+.appointment{min-width:0;border:1px solid var(--line);border-radius:9px;margin:18px 0;padding:14px}.appointment legend{font-weight:650;padding:0 6px}.appointment-actions{justify-content:flex-end}.appointment-actions button{font-size:13px;padding:5px 9px}.appointment .grid>*{min-width:0}.appointment h3{margin-top:8px}.condition{margin-top:12px}#scheduling-section,#phenol-section{margin-top:18px;padding-top:2px;border-top:1px solid var(--line)}#preview-label{margin-top:10px}#issues a{overflow-wrap:anywhere}@media(max-width:480px){.appointment{padding:10px}.procedure{padding:10px}.drugs{grid-template-columns:1fr}.procedure-top{gap:8px;align-items:flex-start}}
+</style>
+</head>
+<body>
+<header><h1>Pain Partner <span style="font-weight:350">/ Booking</span></h1><p>Give the assistant the note and booking decision. Review the generated instructions.</p></header>
+<main>
+<div>
+<section class="card" id="procedures-section"><h2>1. Appointments and procedures</h2><p class="muted">The usual starting point is the supplied note and current plan. The assistant can run the booking generator; this browser is an optional preview and editing tool. It does not extract facts from a note.</p><p class="muted">New booking request · appointment date not yet known. Add procedures to the same appointment or create separate appointments.</p><div id="appointments"></div><button type="button" id="add-appointment">+ Add appointment</button><div id="scheduling-section" hidden><h3>Timing between appointments</h3><label>Scheduling<select id="scheduling-mode"><option value="">Select the decided timing</option><option value="separate_days">Separate days</option><option value="consecutive_days">Consecutive days</option><option value="same_day">Same day</option><option value="custom">Custom instructions</option></select></label><label id="scheduling-instructions-wrap" style="margin-top:12px">Scheduling instructions<textarea id="scheduling-instructions" rows="3" placeholder="Preserve the stated timing and local-stay or contact instructions."></textarea></label></div><div id="phenol-section" hidden><h3>Phenol logistics</h3><label>Patient pronoun in the phenol instructions<select id="phenol-pronoun"><option value="them">them</option><option value="her">her</option><option value="him">him</option></select></label><p class="muted">The approved prescription, morning preparation and appointment timing instructions are added automatically.</p></div><p id="category" class="policy"></p></section>
+<section class="card" id="ac-section"><h2>2. Anticoagulation</h2><label>What do the reviewed sources establish?<select id="ac-status"><option value="unreviewed">Not reviewed</option><option value="no">No — explicitly reported</option><option value="undocumented">None documented after review</option><option value="yes">Yes — known medication</option><option value="conflict">Sources conflict — resolve first</option></select></label><p class="muted" id="ac-default-note" hidden>Booking wording: “No. Please confirm.” This is your selected draft default, not a verified medication history.</p><div id="ac-known" hidden><h3>Documented medication(s)</h3><div id="ac-drugs" class="drugs"></div><label>Other medication, if needed<input id="ac-other" placeholder="Documented name only"></label><label style="margin-top:14px">Management<select id="ac-plan"><option value="auto">Use procedure rule</option><option value="continue">Continue — clinician-selected plan</option><option value="two_day">Use approved Tuesday + Wednesday instructions</option><option value="custom">Use an individualized interruption plan</option></select></label><p id="ac-plan-help" class="muted"></p><div id="ac-custom-wrap" hidden><label>Individualized plan<textarea id="ac-custom" rows="4" placeholder="Last dose: ...&#10;No doses: ...&#10;Restart: ..."></textarea></label></div><label class="check" id="ac-review-wrap" hidden><input type="checkbox" id="ac-reviewed"><span>I have reviewed this medication’s regimen, renal function and procedure-specific interruption/restart plan.</span></label><details id="schedule-details"><summary>View the approved two-branch wording</summary><p id="schedule-preview" style="white-space:pre-line;font-size:14px"></p><p class="muted">This wording is available for a clinician-selected plan. It is not an automatic 72-hour calculation or a default for every anticoagulant.</p></details></div></section>
+<section class="card" id="ap-section"><h2>3. Antiplatelets <span class="muted">excluding ASA</span></h2><label>What do the reviewed sources establish?<select id="ap-status"><option value="unreviewed">Not reviewed</option><option value="no">No — explicitly reported</option><option value="undocumented">None documented after review</option><option value="asa_only">ASA only; no other antiplatelet</option><option value="yes">Yes — non-ASA antiplatelet</option><option value="conflict">Sources conflict — resolve first</option></select></label><div id="ap-known" hidden><h3>Documented medication(s)</h3><div id="ap-drugs" class="drugs"></div><label>Other medication, if needed<input id="ap-other" placeholder="Documented name only"></label><label style="margin-top:14px">Management<select id="ap-plan"><option value="">Select the clinical plan</option><option value="continue">Continue; no hold required</option><option value="seven_day">Clopidogrel — approved one-week instruction</option><option value="custom">Use an individualized plan</option></select></label><div id="ap-custom-wrap" hidden><label>Individualized instructions<textarea id="ap-custom" rows="4" placeholder="Clinician-selected instructions"></textarea></label></div><label class="check"><input id="ap-reviewed" type="checkbox"><span>I have reviewed the selected non-ASA antiplatelet plan.</span></label></div></section>
+<section class="card" id="platelets-section"><h2>4. Platelet count</h2><label>Result availability<select id="platelets-status"><option value="unreviewed">Not reviewed</option><option value="unavailable">No result supplied</option><option value="available">Count available</option></select></label><div class="grid" id="platelets-result" hidden><label>Platelets, ×10⁹/L<input id="platelets-count" type="number" min="0" step="any"></label><label>Sample date, if supplied<input id="platelets-date" type="date"></label></div><p id="platelets-conflict" class="muted" hidden>A count remains entered. Correct the availability, or clear the count if it was entered in error.</p><label id="platelets-decision-wrap" style="margin-top:12px" hidden>Clinical decision<select id="platelets-decision"><option value="">Select the decided plan</option><option value="proceed">Proceed; no additional platelet-related task</option><option value="cbc">Obtain/review CBC before the procedure</option><option value="defer">Defer pending platelet review</option></select></label><label class="check" id="platelets-cbc-wrap" hidden><input type="checkbox" id="platelets-cbc"><span>Add the explicitly decided task: obtain/review CBC before the procedure (optional).</span></label><p class="muted">A supplied count below 100 ×10⁹/L adds the platelet row and requires the decided plan. This is a booking display rule, not a clinical safety threshold. Other counts and unavailable results do not add a routine booking task.</p></section>
+<section class="card"><h2>5. Ativan</h2><label>Booking instruction<select id="ativan"><option value="ask">Please ask</option><option value="no">No</option><option value="requested">Patient requests it — prescription to be arranged</option></select></label><p class="muted">This does not create a prescription.</p><button type="button" id="reset">Clear for next patient</button></section>
+</div>
+<section class="card output"><div class="row"><h2 style="margin:0">MOA booking output</h2><span class="pill">Prototype · v2</span></div><div id="status" class="status" role="status" aria-live="polite"></div><ul id="issues"></ul><label class="check review"><input id="reviewed" type="checkbox"><span>The supplied sources, procedure details and decided medication instructions have been reviewed for this patient.</span></label><label id="preview-label" for="output">Draft preview — not ready to send</label><textarea id="output" readonly spellcheck="false"></textarea><div class="row" style="margin-top:12px"><button type="button" class="primary" id="copy" disabled>Copy booking</button></div><div id="copy-result" role="status"></div><details><summary>What this prototype does</summary><p class="muted">Generates exact wording from structured facts, decided plans and approved templates. Each appointment can contain multiple procedures. Dependencies preserve conditional treatment, and scheduling instructions preserve the timing decision. Unresolved fields disable Copy booking. Source review does not replace a clinician's decisions about suitability. Nothing is sent, booked or prescribed by this page.</p></details></section>
+</main>
+<footer>Works locally in your browser. No patient data is sent or saved by this page. Clearing or reloading removes the form contents.</footer>
+<script id="booking-templates" type="application/json">{
+  "acBranches": [
+    "If procedure on Tuesday, last day of blood thinner on Saturday (none on Sunday and onward). Restart on Wednesday if all feels well.",
+    "If procedure on Wednesday, last day of blood thinner on Sunday (none on Monday and onward). Restart on Thursday if all feels well."
+  ],
+  "clopidogrel": "Antiplatelets (excluding ASA): Yes — clopidogrel. Hold — last dose one week before the procedure.\nFor example, if procedure on Tuesday, last dose on Tuesday the week before. No doses starting Wednesday.",
+  "phenol": [
+    "Once you have a date, let me know. I'll need to send the prescription to Medicine Shoppe on Baltzan.",
+    "Please task an MOA to take the phenol out of the fridge early on the morning of the procedure. Please book her later in the day (after 11 a.m.) so the phenol has time to warm. Please don't book on a Tuesday after a long weekend."
+  ],
+  "source_sha256": "69b7df00b0632e4658de42355066e58f329c93b7951dc4ce17e515ce374af621"
+}</script>
+<script id="booking-engine">
+/* Canonical deterministic booking engine. Browser and CommonJS; no storage or transmission. */
+(function(root){
+'use strict';
+const catalog={
+ lumbar_facet:{label:'Lumbar / thoracic IA facets',name:'IA facets',category:'continue',target:true},
+ lumbar_mbb:{label:'Lumbar / thoracic MBB',name:'MBB',category:'continue',target:true},
+ lumbar_rfa:{label:'Lumbar / thoracic medial branch RFA',name:'medial branch RFA',category:'continue',target:true},
+ cervical_facet:{label:'Cervical IA facets',name:'IA facets',category:'continue',target:true},
+ cervical_mbb:{label:'Cervical MBB / TON',name:'MBB',category:'continue',target:true},
+ sij:{label:'SIJ IA injection',name:'SIJ IA injection',category:'continue'},
+ superficial_tpi:{label:'Superficial / compressible TPI',name:'TPI',category:'continue',target:true},
+ gon:{label:'Superficial GON block',name:'GON block',category:'continue'},
+ tfesi:{label:'TFESI',name:'TFESI',category:'hold',target:true},
+ ilesi:{label:'ILESI',name:'ILESI',category:'hold',target:true,midline:true},
+ caudal:{label:'Caudal ESI',name:'Caudal ESI',category:'hold',midline:true},
+ deep_nerve:{label:'Deep peripheral nerve block',name:'block',category:'hold',target:true},
+ cervical_rfa:{label:'Cervical medial branch RFA',name:'medial branch RFA',category:'review',target:true},
+ diagnostic_sensory:{label:'Diagnostic sensory nerve block',name:'diagnostic sensory nerve block',category:'review',target:true},
+ phenol:{label:'Phenol neurolysis',name:'phenol neurolysis',category:'review',target:true},
+ other:{label:'Other — specify exact procedure',name:'',category:'review',target:true}
+};
+const makeProcedure=()=>({kind:'',side:'',guidance:'',targets:''});
+const makeAppointment=()=>({procedures:[makeProcedure()],duration:30,steroid:'',purpose:'routine',dependsOn:null,condition:''});
+const initialState=()=>({procedures:[makeProcedure()],duration:30,ac:{status:'unreviewed',drugs:[],plan:'auto',custom:'',reviewed:false},ap:{status:'unreviewed',drugs:[],plan:'',custom:'',reviewed:false},platelets:{status:'unreviewed',count:'',date:'',decision:''},steroid:'',ativan:'ask',reviewed:false,scheduling:{mode:'',instructions:''},phenolPronoun:'them'});
+const clean=value=>String(value??'').trim();
+const oneLine=value=>clean(value).replace(/[\r\n]+/g,' ');
+function getTemplates(supplied){
+ if(supplied)return supplied;
+ if(root.BOOKING_TEMPLATES)return root.BOOKING_TEMPLATES;
+ if(typeof document!=='undefined'){
+  const payload=document.getElementById('booking-templates');
+  if(payload){try{return JSON.parse(payload.textContent);}catch{return {};}}
+ }
+ return {};
+}
+function evaluate(input,suppliedTemplates){
+ const s=input&&typeof input==='object'?input:{};
+ const templates=getTemplates(suppliedTemplates);
+ const issues=[];const issue=(field,message)=>issues.push({field,message});
+ const hasAppointments=Object.hasOwn(s,'appointments');
+ const appointments=hasAppointments?(Array.isArray(s.appointments)?s.appointments:[]):[{procedures:s.procedures,duration:s.duration,steroid:s.steroid,purpose:'routine',dependsOn:null,condition:''}];
+ if(!appointments.length)issue('procedures','Add an appointment with a procedure.');
+ const multi=appointments.length>1;
+ const scheduling=s.scheduling&&typeof s.scheduling==='object'?s.scheduling:{};
+ if(scheduling.instructions!==undefined&&typeof scheduling.instructions!=='string')issue('scheduling','Scheduling instructions must be text.');
+ const modes={separate_days:'Separate days.',consecutive_days:'Consecutive days.',same_day:'Same day.',custom:''};
+ const validMode=Object.hasOwn(modes,scheduling.mode);
+ if(multi&&!validMode)issue('scheduling','Choose whether the appointments are on separate days, consecutive days, the same day or a custom schedule.');
+ if(scheduling.mode==='custom'&&!clean(scheduling.instructions))issue('scheduling','Complete the custom scheduling instructions.');
+ const label=index=>(['separate_days','consecutive_days'].includes(scheduling.mode)?'Day ':'Appointment ')+(index+1);
+ let category='continue';let hasPhenol=false;
+ const raiseCategory=value=>{if(value==='hold'||(value==='review'&&category!=='hold'))category=value;};
+ const rendered=appointments.map((raw,appointmentIndex)=>{
+  const a=raw&&typeof raw==='object'?raw:{};
+  const context=multi?label(appointmentIndex)+': ':'';
+  const procedures=Array.isArray(a.procedures)?a.procedures:[];
+  if(!procedures.length)issue('procedures',context+'Add a procedure.');
+  const parts=[];let hasDiagnosticSensory=false;
+  procedures.forEach((rawProcedure,i)=>{
+   const p=rawProcedure&&typeof rawProcedure==='object'?rawProcedure:{};
+   const c=Object.hasOwn(catalog,p.kind)?catalog[p.kind]:null;
+   if(!c){issue('procedures',context+`Procedure ${i+1}: choose the procedure.`);raiseCategory('review');return;}
+   raiseCategory(c.category);if(p.kind==='phenol')hasPhenol=true;if(p.kind==='diagnostic_sensory')hasDiagnosticSensory=true;
+   if(!['Fluoro','US','Landmark'].includes(p.guidance))issue('procedures',context+`Procedure ${i+1}: choose guidance.`);
+   if(!['LEFT','RIGHT','B/L','MIDLINE'].includes(p.side))issue('procedures',context+`Procedure ${i+1}: choose a side or midline.`);
+   if(p.targets!==undefined&&typeof p.targets!=='string')issue('procedures',context+`Procedure ${i+1}: targets must be text.`);
+   if(c.midline&&p.side!=='MIDLINE')issue('procedures',context+`Procedure ${i+1}: confirm the midline target.`);
+   if(c.target&&!clean(p.targets))issue('procedures',context+`Procedure ${i+1}: enter the confirmed targets; they are not inferred.`);
+   const title=[p.side==='MIDLINE'?'':p.side,oneLine(p.targets),c.name].filter(Boolean).join(' ');
+   parts.push({guidance:p.guidance,title});
+  });
+  if(!['number','string'].includes(typeof a.duration)||!Number.isInteger(Number(a.duration))||Number(a.duration)<1||Number(a.duration)>240)issue('duration',context+'Choose a duration from 1 to 240 minutes.');
+  if(!['yes','no'].includes(a.steroid))issue('steroid',context+'Confirm whether steroid is planned.');
+  if(!['routine','diagnostic','treatment'].includes(a.purpose))issue('procedures',context+'Choose the appointment purpose.');
+  if((a.purpose==='diagnostic'||hasDiagnosticSensory)&&a.steroid!=='no')issue('steroid',context+'Diagnostic appointments and diagnostic sensory nerve blocks require an explicit no-steroid plan.');
+  const dependent=a.dependsOn!==null&&a.dependsOn!==undefined;
+  if(a.condition!==undefined&&typeof a.condition!=='string')issue('procedures',context+'The appointment condition must be text.');
+  if(dependent){
+   if(!Number.isInteger(a.dependsOn)||a.dependsOn<1||a.dependsOn>appointmentIndex)issue('procedures',context+'Select a strictly earlier appointment as the dependency.');
+   if(!clean(a.condition))issue('procedures',context+'Complete the clinician-selected condition for the dependent appointment.');
+  }
+  const prefix=g=>g==='Landmark'?'':g+', ';
+  let procText=parts.length&&parts.every(p=>p.guidance===parts[0].guidance)?prefix(parts[0].guidance)+parts.map(p=>p.title).join(' + '):parts.map(p=>prefix(p.guidance)+p.title).join(' + ');
+  if(!procText)procText='[Select procedure]';
+  if(dependent){
+   const condition=oneLine(a.condition)||'[clinician-selected condition required]';
+   procText='Possible '+procText+'; after '+label(Number(a.dependsOn)-1)+' only if '+condition+(/[.!?]$/.test(condition)?'':'.')+' Dr. Tian review required before proceeding.';
+  }
+  return {procText,duration:a.duration,steroid:a.steroid};
+ });
+ const medication=(raw,which)=>{
+  const m=raw&&typeof raw==='object'?raw:{};
+  const ac=which==='ac';const title=ac?'Anticoagulation':'Antiplatelets (excluding ASA)';
+  const drugs=(Array.isArray(m.drugs)?m.drugs:[]).map(oneLine).filter(Boolean);const names=drugs.join(', ');
+  const negative=['no','undocumented',...(ac?[]:['asa_only'])];
+  if(negative.includes(m.status)){
+   if(drugs.length){issue(which,'Known medication remains recorded. Resolve the status conflict before using “No.”');return title+': [Resolve known medication/status conflict]';}
+   return title+': No. Please confirm.';
+  }
+  if(m.status!=='yes'){issue(which,`${title}: review the sources and select a status.`);return title+': [Review required]';}
+  if(!drugs.length)issue(which,`${title}: select the documented medication.`);
+  let plan=m.plan;
+  if(ac&&plan==='auto')plan=category==='continue'?'continue':'';
+  if(!plan){issue(which,`${title}: choose the clinical management plan.`);return title+': Yes — '+(names||'[medication]')+'. [Select plan]';}
+  if(ac&&plan==='continue'&&category==='hold'){issue(which,'An epidural/deep block needs an interruption plan; continuation is not an automatic option.');return title+': Yes — '+names+'. [Interruption plan required]';}
+  if((!ac||m.plan!=='auto')&&m.reviewed!==true)issue(which,`${title}: review the selected drug-specific plan.`);
+  const heading=title+': Yes — '+(names||'[medication]')+'. ';
+  if(plan==='continue')return heading+'Continue; no hold required.';
+  if(ac&&plan==='two_day'){
+   if(multi){issue(which,'Multiple appointments require an individualized anticoagulant plan covering the entire sequence; the single-procedure next-day restart template cannot be used.');return heading+'[Individualized plan covering all appointments required]';}
+   if(drugs.length!==1)issue(which,'Use individual instructions for multiple anticoagulants.');
+   if(!Array.isArray(templates.acBranches)||templates.acBranches.length!==2){issue(which,'The approved two-branch template is unavailable.');return heading+'[Template unavailable]';}
+   return heading+'Hold before the procedure.\n\n'+templates.acBranches.join('\n\n');
+  }
+  if(!ac&&plan==='seven_day'){
+   if(drugs.length!==1||drugs[0].toLowerCase()!=='clopidogrel'){issue(which,'The one-week template is approved here for clopidogrel; select the actual drug-specific plan.');return heading+'[Drug-specific plan required]';}
+   if(!templates.clopidogrel){issue(which,'Clopidogrel template unavailable.');return heading+'[Template unavailable]';}
+   return templates.clopidogrel;
+  }
+  if(plan==='custom'){
+   const text=clean(m.custom);
+   if(!text||/\.\.\.|…/.test(text))issue(which,`${title}: complete the individualized instructions.`);
+   if(ac&&!['Last dose:','No doses:','Restart:'].every(label=>{const match=text.match(new RegExp('^'+label+'[ \t]*(\\S[^\\r\\n]*)$','im'));return match&&!/^(Last dose:|No doses:|Restart:)/i.test(match[1]);}))issue(which,'Include completed Last dose:, No doses: and Restart: instructions on separate lines.');
+   return heading+'\n'+(text||'[Individualized instructions required]');
+  }
+  issue(which,`${title}: unsupported plan selection.`);return heading+'[Select plan]';
+ };
+ const ac=medication(s.ac,'ac');const ap=medication(s.ap,'ap');
+ const plt=s.platelets&&typeof s.platelets==='object'?s.platelets:{};let pltLine='';let plateletAction='';
+ if(plt.status==='available'){
+  const validCount=['number','string'].includes(typeof plt.count)&&clean(plt.count)!==''&&Number.isFinite(Number(plt.count))&&Number(plt.count)>=0;
+  if(!validCount)issue('platelets','Enter the actual platelet count.');
+  const date=clean(plt.date);
+  if(date&&date.toLowerCase()!=='date not supplied'&&(!/^\d{4}-\d{2}-\d{2}$/.test(date)||Number.isNaN(Date.parse(date))||new Date(date).toISOString().slice(0,10)!==date))issue('platelets','Enter a valid platelet sample date or state “date not supplied”.');
+  if(validCount&&Number(plt.count)<100){
+   pltLine='Platelets: '+clean(plt.count)+' ×10⁹/L ('+(date||'date not supplied')+').';
+   if(!['proceed','cbc','defer'].includes(plt.decision))issue('platelets','Select the clinician decision for the platelet count below 100.');
+   if(plt.decision==='cbc')pltLine+=' Obtain/review CBC before the procedure.';
+   if(plt.decision==='proceed')pltLine+=' Proceed per clinician decision.';
+   if(plt.decision==='defer'){pltLine+=' Defer booking pending Dr. Tian review.';issue('platelets','Booking is deferred pending Dr. Tian review of the platelet count.');}
+  }else if(validCount&&plt.decision==='cbc')plateletAction='Obtain/review CBC before the procedure.';
+ }else if(plt.status==='unavailable'){
+  if(clean(plt.count)!=='')issue('platelets','Known platelet count remains recorded. Resolve the result-availability conflict before omitting it.');
+  if(plt.decision==='cbc')plateletAction='Obtain/review CBC before the procedure.';
+ }else issue('platelets','Review platelet result availability.');
+ const ativanChoices={ask:'Please ask',no:'No',requested:'Patient requests it; prescription to be arranged',prescribed:'Prescription already faxed; instructions above'};
+ const ativan=Object.hasOwn(ativanChoices,s.ativan)?ativanChoices[s.ativan]:null;
+ if(!ativan)issue('ativan','Select an Ativan booking instruction.');
+ if(s.reviewed!==true)issue('reviewed','Review the facts and instructions before copying.');
+ const procLine=multi?'Procedure:\n'+rendered.map((a,i)=>'- '+label(i)+': '+a.procText).join('\n'):'Procedure: '+(rendered[0]?.procText||'[Select procedure]');
+ const durationLine=multi?(rendered.every(a=>Number(a.duration)===Number(rendered[0].duration))?'Duration: '+rendered[0].duration+' minutes per appointment':'Duration:\n'+rendered.map((a,i)=>'- '+label(i)+': '+a.duration+' minutes').join('\n')):'Duration: '+(rendered[0]?.duration??'[Select]')+' minutes';
+ const steroidText=value=>({yes:'Yes',no:'No'}[value]||'[Confirm]');
+ const pairedLumbarDiagnostic=appointments.length===4&&appointments.every(a=>a.purpose==='diagnostic'&&a.steroid==='no'&&a.procedures?.length===1&&/L3, L4 MBB \+ L5 DR block/.test(a.procedures[0].targets||''));
+ const steroidLine=pairedLumbarDiagnostic?'Steroid: No':multi?'Steroid:\n'+rendered.map((a,i)=>'- '+label(i)+': '+steroidText(a.steroid)).join('\n'):'Steroid: '+steroidText(rendered[0]?.steroid);
+ const lines=['Please book:','',procLine,durationLine];
+ if(pairedLumbarDiagnostic)lines.push('');
+ if(multi)lines.push('Scheduling: '+([validMode?modes[scheduling.mode]:'[Select schedule]',clean(scheduling.instructions)].filter(Boolean).join(' ')));
+ else if(clean(scheduling.instructions))lines.push('Scheduling: '+clean(scheduling.instructions));
+ if(pairedLumbarDiagnostic)lines.push('');
+ lines.push(ac,ap);if(pltLine)lines.push(pltLine);if(plateletAction)lines.push(plateletAction);lines.push(steroidLine,'Ativan: '+(ativan||'[Select]'));
+ if(hasPhenol){
+  const pronoun=s.phenolPronoun??'them';
+  if(!['her','him','them'].includes(pronoun))issue('procedures','Choose her, him or them for the phenol booking instructions.');
+  const paragraphs=Array.isArray(templates.phenol)?templates.phenol:typeof templates.phenol==='string'?templates.phenol.trim().split(/\n\s*\n/):[];
+  if(paragraphs.length!==2||paragraphs.some(p=>typeof p!=='string'||!clean(p)))issue('procedures','The approved phenol booking instructions are unavailable.');
+  else lines.push('',paragraphs.map(p=>p.replace(/\bher\b/g,['her','him','them'].includes(pronoun)?pronoun:'them')).join('\n\n'));
+ }
+ return {ready:issues.length===0,text:lines.join('\n'),issues,category};
+}
+const api={initialState,makeAppointment,evaluate,catalog};
+root.BookingEngine=api;
+if(typeof module!=='undefined'&&module.exports)module.exports=api;
+})(globalThis);
+
+</script>
+<script id="booking-ui">
+(function(){
+'use strict';
+const E=BookingEngine;
+const el=id=>document.getElementById(id);
+const newState=()=>({...E.initialState(),appointments:[E.makeAppointment()],scheduling:{mode:'',instructions:''},phenolPronoun:'them'});
+let state=newState();
+const options=(select,items)=>{select.replaceChildren();for(const [value,label] of items){const option=document.createElement('option');option.value=value;option.textContent=label;select.append(option);}};
+const ids={procedures:'procedures-section',duration:'procedures-section',steroid:'procedures-section',scheduling:'scheduling-section',ac:'ac-section',ap:'ap-section',platelets:'platelets-section',ativan:'ativan',reviewed:'reviewed'};
+function changed(){
+ state.reviewed=false;state.ac.reviewed=false;state.ap.reviewed=false;
+ for(const id of ['reviewed','ac-reviewed','ap-reviewed'])el(id).checked=false;
+ render();
+}
+function selectField(labelText,id,value,items,onChange){
+ const label=document.createElement('label');label.textContent=labelText;
+ const select=document.createElement('select');select.id=id;select.setAttribute('aria-label',labelText);options(select,items);select.value=value;
+ select.onchange=()=>onChange(select.value);label.append(select);return label;
+}
+function removeAppointment(index){
+ const removedNumber=index+1;state.appointments.splice(index,1);
+ for(const appointment of state.appointments){
+  if(appointment.dependsOn===removedNumber){appointment.dependsOn=null;appointment.condition='';}
+  else if(appointment.dependsOn>removedNumber)appointment.dependsOn-=1;
+ }
+ if(state.appointments.length===1){state.scheduling={mode:'',instructions:''};el('scheduling-mode').value='';el('scheduling-instructions').value='';}
+ refreshAppointments();changed();
+}
+function refreshAppointments(){
+ el('appointments').replaceChildren();
+ state.appointments.forEach((appointment,appointmentIndex)=>{
+  const number=appointmentIndex+1;const prefix='Appointment '+number;
+  const box=document.createElement('fieldset');box.className='appointment';box.id='appointment-'+number;
+  const legend=document.createElement('legend');legend.textContent=prefix;box.append(legend);
+  if(state.appointments.length>1){
+   const actions=document.createElement('div');actions.className='row appointment-actions';
+   const remove=document.createElement('button');remove.type='button';remove.textContent='Remove appointment';remove.setAttribute('aria-label','Remove appointment '+number);remove.onclick=()=>removeAppointment(appointmentIndex);actions.append(remove);box.append(actions);
+  }
+  const grid=document.createElement('div');grid.className='grid';
+  const durationLabel=document.createElement('label');durationLabel.textContent='Duration, minutes';
+  const duration=document.createElement('input');duration.id='appointment-'+number+'-duration';duration.type='number';duration.min='1';duration.max='240';duration.value=appointment.duration;duration.setAttribute('aria-label',prefix+' duration, minutes');duration.oninput=()=>{appointment.duration=duration.value;changed();};durationLabel.append(duration);grid.append(durationLabel);
+  grid.append(selectField(prefix+' steroid','appointment-'+number+'-steroid',appointment.steroid,[['','Select'],['yes','Yes'],['no','No']],value=>{appointment.steroid=value;changed();}));
+  grid.append(selectField(prefix+' purpose','appointment-'+number+'-purpose',appointment.purpose,[['routine','Routine'],['diagnostic','Diagnostic'],['treatment','Treatment']],value=>{appointment.purpose=value;changed();}));
+  let conditionLabel;
+  if(appointmentIndex>0){
+   grid.append(selectField(prefix+' depends on','appointment-'+number+'-depends-on',appointment.dependsOn===null?'':String(appointment.dependsOn),[['','No dependency'],...state.appointments.slice(0,appointmentIndex).map((_,i)=>[String(i+1),'Appointment '+(i+1)])],value=>{
+    appointment.dependsOn=value?Number(value):null;
+    if(appointment.dependsOn===null){appointment.condition='';el('appointment-'+number+'-condition').value='';}
+    conditionLabel.hidden=appointment.dependsOn===null;changed();
+   }));
+  }
+  box.append(grid);
+  if(appointmentIndex>0){
+   conditionLabel=document.createElement('label');conditionLabel.className='condition';conditionLabel.textContent='Condition before appointment '+number+' can proceed';conditionLabel.hidden=appointment.dependsOn===null;
+   const condition=document.createElement('textarea');condition.id='appointment-'+number+'-condition';condition.rows=2;condition.value=appointment.condition;condition.placeholder='Use the clinician-selected response or other condition.';condition.oninput=()=>{appointment.condition=condition.value;changed();};conditionLabel.append(condition);box.append(conditionLabel);
+  }
+  appointment.procedures.forEach((procedure,procedureIndex)=>{
+   const procedureNumber=procedureIndex+1;const procedurePrefix=prefix+' procedure '+procedureNumber;
+   const procedureBox=document.createElement('div');procedureBox.className='procedure';
+   const top=document.createElement('div');top.className='procedure-top';const title=document.createElement('strong');title.textContent='Procedure '+procedureNumber;top.append(title);
+   if(appointment.procedures.length>1){
+    const remove=document.createElement('button');remove.type='button';remove.textContent='Remove';remove.setAttribute('aria-label','Remove appointment '+number+' procedure '+procedureNumber);remove.onclick=()=>{appointment.procedures.splice(procedureIndex,1);refreshAppointments();changed();};top.append(remove);
+   }
+   procedureBox.append(top);const procedureGrid=document.createElement('div');procedureGrid.className='grid';
+   const fields=[['kind',procedurePrefix,[['','Select'],...Object.entries(E.catalog).map(([key,value])=>[key,value.label])]],['guidance',procedurePrefix+' guidance',[['','Select'],['Fluoro','Fluoro'],['US','US'],['Landmark','Landmark']]],['side',procedurePrefix+' side',[['','Select'],['LEFT','LEFT'],['RIGHT','RIGHT'],['B/L','B/L'],['MIDLINE','Midline']]]];
+   for(const [key,label,items] of fields){
+    procedureGrid.append(selectField(label,'appointment-'+number+'-procedure-'+procedureNumber+'-'+key,procedure[key],items,value=>{
+     procedure[key]=value;
+     if(key==='kind'&&E.catalog[value]?.midline){procedure.side='MIDLINE';refreshAppointments();}
+     changed();
+    }));
+   }
+   const targetsLabel=document.createElement('label');targetsLabel.textContent='Confirmed levels / nerve / muscle';
+   const targets=document.createElement('input');targets.value=procedure.targets;targets.setAttribute('aria-label',procedurePrefix+' targets');targets.placeholder='Use the stated targets';targets.oninput=()=>{procedure.targets=targets.value;changed();};targetsLabel.append(targets);procedureGrid.append(targetsLabel);procedureBox.append(procedureGrid);box.append(procedureBox);
+  });
+  const add=document.createElement('button');add.type='button';add.textContent='+ Add procedure';add.setAttribute('aria-label','Add procedure to appointment '+number);add.onclick=()=>{appointment.procedures.push({kind:'',side:'',guidance:'',targets:''});refreshAppointments();changed();};box.append(add);
+  el('appointments').append(box);
+ });
+}
+function mountDrugs(which,drugs){
+ el(which+'-drugs').replaceChildren();
+ for(const drug of drugs){const label=document.createElement('label');label.className='check';const checkbox=document.createElement('input');checkbox.type='checkbox';checkbox.dataset.drug=drug;checkbox.checked=state[which].drugs.includes(drug);checkbox.onchange=()=>{readDrugs(which);changed();};label.append(checkbox,document.createTextNode(drug));el(which+'-drugs').append(label);}
+}
+function readDrugs(which){state[which].drugs=[...el(which+'-drugs').querySelectorAll('input:checked')].map(input=>input.dataset.drug);const other=el(which+'-other').value.trim();if(other)state[which].drugs.push(other);}
+function render(){
+ const result=E.evaluate(state);
+ el('output').value=result.ready?result.text:'DRAFT — NOT READY TO SEND\n\n'+result.text;
+ el('preview-label').textContent=result.ready?'Reviewed booking preview':'Draft preview — not ready to send';
+ el('copy').disabled=!result.ready;
+ el('status').textContent=result.ready?'Ready to copy — source and plan review completed':`Draft — ${result.issues.length} item${result.issues.length===1?'':'s'} to review`;
+ el('status').className='status'+(result.ready?' ready':'');el('issues').replaceChildren();
+ for(const issue of result.issues){const item=document.createElement('li');const link=document.createElement('a');link.href='#'+(ids[issue.field]||'procedures-section');link.textContent=issue.message;item.append(link);el('issues').append(item);}
+ el('issues').hidden=result.ready;
+ el('category').textContent={continue:'Clinic rule: anticoagulation can continue for these selected procedures, unless a patient-specific plan says otherwise.',hold:'An epidural or deep block is selected: choose the reviewed interruption plan.',review:'A selected procedure needs a clinician-selected anticoagulation plan.'}[result.category];
+ el('ac-default-note').hidden=!['no','undocumented'].includes(state.ac.status);el('ac-known').hidden=state.ac.status!=='yes';el('ap-known').hidden=state.ap.status!=='yes';
+ el('ac-custom-wrap').hidden=state.ac.plan!=='custom';el('ap-custom-wrap').hidden=state.ap.plan!=='custom';el('ac-review-wrap').hidden=state.ac.plan==='auto';
+ const count=state.platelets.count;const hasCount=String(count).trim()!=='';const validCount=hasCount&&Number.isFinite(Number(count))&&Number(count)>=0;
+ const lowCount=state.platelets.status==='available'&&validCount&&Number(count)<100;
+ el('platelets-result').hidden=state.platelets.status!=='available'&&!hasCount;
+ el('platelets-conflict').hidden=state.platelets.status==='available'||!hasCount;
+ el('platelets-decision-wrap').hidden=!lowCount;
+ el('platelets-cbc-wrap').hidden=!(state.platelets.status==='available'&&validCount&&!lowCount||state.platelets.status==='unavailable'&&!hasCount);
+ el('platelets-cbc').checked=state.platelets.decision==='cbc';
+ el('scheduling-section').hidden=state.appointments.length<2;
+ el('scheduling-instructions').required=state.appointments.length>1&&state.scheduling.mode==='custom';
+ el('phenol-section').hidden=!state.appointments.some(appointment=>appointment.procedures.some(procedure=>procedure.kind==='phenol'));
+ el('ac-plan-help').textContent=state.ac.plan==='auto'?(result.category==='continue'?'Output: Continue; no hold required.':'Select a plan; the form will not infer a drug-specific hold interval.'):state.ac.plan==='two_day'?(state.appointments.length>1?'Multiple appointments need an individualized plan covering the entire sequence.':'Both Tuesday and Wednesday instructions will be included. Confirm that this exact plan applies to this patient.'):'';
+ el('copy-result').textContent='';
+}
+function bind(){
+ el('ativan').addEventListener('input',()=>{state.ativan=el('ativan').value;changed();});
+ for(const which of ['ac','ap']){
+  for(const key of ['status','plan','custom'])el(which+'-'+key).addEventListener('input',()=>{state[which][key]=el(which+'-'+key).value;changed();});
+  el(which+'-other').addEventListener('input',()=>{readDrugs(which);changed();});
+  el(which+'-reviewed').onchange=()=>{state[which].reviewed=el(which+'-reviewed').checked;state.reviewed=false;el('reviewed').checked=false;render();};
+ }
+ for(const key of ['status','count','date','decision'])el('platelets-'+key).addEventListener('input',()=>{
+  state.platelets[key]=el('platelets-'+key).value;
+  if(key!=='decision'){state.platelets.decision='';el('platelets-decision').value='';}
+  changed();
+ });
+ el('platelets-cbc').onchange=()=>{state.platelets.decision=el('platelets-cbc').checked?'cbc':'';el('platelets-decision').value=state.platelets.decision;changed();};
+ for(const key of ['mode','instructions'])el('scheduling-'+key).addEventListener('input',()=>{state.scheduling[key]=el('scheduling-'+key).value;changed();});
+ el('phenol-pronoun').addEventListener('input',()=>{state.phenolPronoun=el('phenol-pronoun').value;changed();});
+ el('reviewed').onchange=()=>{state.reviewed=el('reviewed').checked;render();};
+ el('add-appointment').onclick=()=>{state.appointments.push(E.makeAppointment());refreshAppointments();changed();};
+ el('reset').onclick=()=>{state=newState();sync();render();};
+ el('copy').onclick=async()=>{
+  const result=E.evaluate(state);if(!result.ready)return;
+  try{await navigator.clipboard.writeText(result.text);el('copy-result').textContent='Booking copied.';}
+  catch{el('output').focus();el('output').select();el('copy-result').textContent=document.execCommand('copy')?'Booking copied.':'Copy is unavailable in this browser. The reviewed output is selected for manual copying.';}
+ };
+}
+function sync(){
+ el('ativan').value=state.ativan;
+ for(const which of ['ac','ap']){for(const key of ['status','plan','custom'])el(which+'-'+key).value=state[which][key];el(which+'-other').value='';el(which+'-reviewed').checked=false;}
+ for(const key of ['status','count','date','decision'])el('platelets-'+key).value=state.platelets[key];
+ for(const key of ['mode','instructions'])el('scheduling-'+key).value=state.scheduling[key];
+ el('phenol-pronoun').value=state.phenolPronoun;el('reviewed').checked=false;
+ mountDrugs('ac',['apixaban','rivaroxaban','edoxaban','dabigatran','warfarin','enoxaparin']);mountDrugs('ap',['clopidogrel','ticagrelor','prasugrel']);refreshAppointments();
+}
+el('schedule-preview').textContent=JSON.parse(el('booking-templates').textContent).acBranches.join('\n\n');bind();sync();render();
+})();
+</script>
+</body>
+</html>

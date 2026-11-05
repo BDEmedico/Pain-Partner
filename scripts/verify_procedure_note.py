@@ -51,7 +51,7 @@ def anchor_block(note: str, anchor: str) -> str | None:
     return note[start:end if end >= 0 else len(note)]
 
 
-def _verify(note_path: Path, manifest_path: Path) -> dict:
+def _verify(note_path: Path, manifest_path: Path, *, exam_only: bool = False) -> dict:
     errors: list[dict] = []
     checked: list[str] = []
 
@@ -161,6 +161,67 @@ def _verify(note_path: Path, manifest_path: Path) -> dict:
             if normalized in seen:
                 fail("repeated_paragraph", "An identical substantial paragraph appears more than once.")
             seen.add(normalized)
+
+    # Clinical review decides which findings are supported. These declarations bind
+    # that decision to the final wording without inferring findings from raw speech.
+    findings = data.get("exam_findings", [])
+    if not isinstance(findings, list) or (exam_only and not findings):
+        fail("exam_findings_missing", "Declare each supported examination component and its source evidence.")
+        findings = []
+    for item in findings:
+        if not isinstance(item, dict):
+            fail("exam_schema", "Each examination finding must be an object.")
+            continue
+        fid = str(item.get("id", "exam"))
+        evidence(item.get("evidence"), fid)
+        clinical_evidence = item.get("evidence", [])
+        if not isinstance(clinical_evidence, list) or not any(
+            isinstance(ev, dict) and isinstance(ev.get("source_id"), str)
+            and receipts.get(ev["source_id"], {}).get("role") in {"dictation", "previous_note", "other"}
+            for ev in clinical_evidence
+        ):
+            fail("exam_source", f"{fid}: examination evidence must include a clinical source, not only a macro/preference.")
+        block = anchor_block(note, item.get("note_anchor", ""))
+        if block is None:
+            fail("exam_anchor", f"{fid}: note_anchor must identify exactly one examination paragraph.")
+        expected = item.get("expected_text")
+        if not isinstance(expected, list) or not expected:
+            fail("exam_expected", f"{fid}: expected examination wording is required.")
+        else:
+            for phrase in expected:
+                if not isinstance(phrase, str) or not phrase.strip() or phrase not in (block or ""):
+                    fail("exam_expected", f"{fid}: supported examination wording is absent or changed.")
+    checked.append("declared examination components and source-linked wording")
+
+    def finish() -> dict:
+        for phrase in data.get("forbidden_text", []):
+            if isinstance(phrase, str) and phrase.casefold() in note.casefold():
+                fail("exception_conflict", f"Forbidden wording for this encounter: {phrase!r}.")
+        for phrase in data.get("expected_text", []):
+            if not isinstance(phrase, str) or phrase not in note:
+                fail("expected_text", "An expected encounter-specific statement is absent.")
+
+        reviews = data.get("reviews", {})
+        if not isinstance(reviews, dict):
+            reviews = {}
+        for name in REVIEW_NAMES:
+            review = reviews.get(name)
+            if not isinstance(review, dict) or review.get("status") != "complete":
+                fail("review_incomplete", f"{name}: semantic review has not been completed.")
+                continue
+            if review.get("note_sha256") != note_hash:
+                fail("stale_review", f"{name}: attestation refers to a different draft.")
+            evidence(review.get("evidence"), name, require_note=True)
+        checked.append("semantic review attestations (not independently verified)")
+        limitation = LIMITATION if not errors else (
+            "Repair the listed failures and repeat review. These checks do not establish clinical truth.")
+        if exam_only:
+            limitation = "Exam-only review: procedure layout, targets and drug doses were not checked. " + limitation
+        return {"status": "PASS" if not errors else "NEEDS_REPAIR", "note_sha256": note_hash,
+                "checks": checked, "errors": errors, "limitation": limitation}
+
+    if exam_only:
+        return finish()
 
     marker = data.get("procedure_start", "Procedure performed:")
     if not isinstance(marker, str) or note.count(marker) != 1:
@@ -283,45 +344,28 @@ def _verify(note_path: Path, manifest_path: Path) -> dict:
             fail("drug_schema", f"{did}: invalid arithmetic inputs ({exc}).")
     checked.append("declared injectate arithmetic and corresponding note wording")
 
-    for phrase in data.get("forbidden_text", []):
-        if isinstance(phrase, str) and phrase.casefold() in note.casefold():
-            fail("exception_conflict", f"Forbidden wording for this encounter: {phrase!r}.")
-    for phrase in data.get("expected_text", []):
-        if not isinstance(phrase, str) or phrase not in note:
-            fail("expected_text", "An expected encounter-specific statement is absent.")
-
-    reviews = data.get("reviews", {})
-    if not isinstance(reviews, dict):
-        reviews = {}
-    for name in REVIEW_NAMES:
-        review = reviews.get(name)
-        if not isinstance(review, dict) or review.get("status") != "complete":
-            fail("review_incomplete", f"{name}: semantic review has not been completed.")
-            continue
-        if review.get("note_sha256") != note_hash:
-            fail("stale_review", f"{name}: attestation refers to a different draft.")
-        evidence(review.get("evidence"), name, require_note=True)
-    checked.append("semantic review attestations (not independently verified)")
-    return {"status": "PASS" if not errors else "NEEDS_REPAIR", "note_sha256": note_hash,
-            "checks": checked, "errors": errors, "limitation": LIMITATION if not errors else
-            "Repair the listed failures and repeat review. These checks do not establish clinical truth."}
+    return finish()
 
 
-def verify(note_path: Path, manifest_path: Path) -> dict:
+def verify(note_path: Path, manifest_path: Path, *, exam_only: bool = False) -> dict:
     """Malformed structured input fails closed rather than crashing the delivery check."""
     try:
-        return _verify(note_path, manifest_path)
+        result = _verify(note_path, manifest_path, exam_only=exam_only)
     except (TypeError, ValueError, KeyError, AttributeError) as exc:
-        return {"status": "INCOMPLETE", "errors": [{"code": "manifest_schema",
-                "message": f"Invalid manifest field type or structure: {exc}"}]}
+        result = {"status": "INCOMPLETE", "errors": [{"code": "manifest_schema",
+                  "message": f"Invalid manifest field type or structure: {exc}"}]}
+    result["scope"] = "exam_only" if exam_only else "full_procedure"
+    return result
 
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--note", required=True, type=Path)
     parser.add_argument("--manifest", required=True, type=Path)
+    parser.add_argument("--exam-only", action="store_true",
+                        help="Check source-linked examination wording without procedure or drug validation.")
     args = parser.parse_args()
-    result = verify(args.note, args.manifest)
+    result = verify(args.note, args.manifest, exam_only=args.exam_only)
     print(json.dumps(result, indent=2))
     return 0 if result["status"] == "PASS" else 1
 

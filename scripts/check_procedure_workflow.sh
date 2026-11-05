@@ -3,6 +3,9 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 python -m unittest discover -s scripts -p 'test*procedure*.py' -v
+python scripts/build_booking_builder.py --check
+node scripts/test_booking_builder.cjs
+node scripts/test_booking_cli.cjs
 node scripts/test_root_sequence.cjs
 node scripts/test_procedure_defaults.cjs
 python scripts/build_plugin_bundle.py

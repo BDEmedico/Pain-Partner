@@ -3,12 +3,16 @@ from pathlib import Path
 from zipfile import ZipFile, ZIP_DEFLATED
 import hashlib
 import json
+from build_booking_builder import build as build_booking_builder
+from build_exam_builder import build as build_exam_builder
 
 ROOT = Path(__file__).resolve().parents[1]
 DEST = ROOT / 'dist' / 'pain-partner-update.zip'
 
 
 def build():
+    build_booking_builder(check=True)
+    build_exam_builder(check=True)
     files = {}
     for path in sorted((ROOT / 'skills').rglob('*')):
         if path.is_file() and '__pycache__' not in path.parts and path.suffix != '.pyc':
@@ -17,7 +21,14 @@ def build():
     for name in ('clinic-visit', 'referral-letter'):
         files[f'skills/{name}/references/preferences.md'] = preferences
     files['skills/clinic-visit/assets/procedure-note-builder.html'] = (ROOT / 'procedure-note-builder.html').read_bytes()
+    files['skills/clinic-visit/assets/booking-builder.html'] = (ROOT / 'booking-builder.html').read_bytes()
+    files['skills/clinic-visit/assets/exam-builder.html'] = (ROOT / 'exam-builder.html').read_bytes()
+    files['skills/clinic-visit/scripts/exam_engine.cjs'] = (ROOT / 'scripts/exam_engine.cjs').read_bytes()
+    files['skills/clinic-visit/scripts/render_exam.cjs'] = (ROOT / 'scripts/render_exam.cjs').read_bytes()
     files['skills/clinic-visit/scripts/verify_procedure_note.py'] = (ROOT / 'scripts/verify_procedure_note.py').read_bytes()
+    files['skills/clinic-visit/scripts/verify_booking_output.py'] = (ROOT / 'scripts/verify_booking_output.py').read_bytes()
+    files['skills/clinic-visit/scripts/render_booking.cjs'] = (ROOT / 'scripts/render_booking.cjs').read_bytes()
+    files['skills/clinic-visit/scripts/booking_engine.cjs'] = (ROOT / 'scripts/booking_engine.cjs').read_bytes()
     files['skills/clinic-visit/references/verifier.md'] = (ROOT / 'scripts/PROCEDURE_VERIFIER.md').read_bytes()
     files['PUBLICATION.md'] = (ROOT / 'PUBLICATION.md').read_bytes()
     checksums = {name: hashlib.sha256(data).hexdigest() for name, data in files.items()}
@@ -31,6 +42,8 @@ def build():
         for name, digest in checksums.items():
             assert hashlib.sha256(archive.read(name)).hexdigest() == digest
         assert archive.read('skills/clinic-visit/assets/procedure-note-builder.html') == (ROOT / 'procedure-note-builder.html').read_bytes()
+        assert archive.read('skills/clinic-visit/assets/booking-builder.html') == (ROOT / 'booking-builder.html').read_bytes()
+        assert archive.read('skills/clinic-visit/assets/exam-builder.html') == (ROOT / 'exam-builder.html').read_bytes()
         assert not any('follow-up-visit/' in name for name in archive.namelist())
     print(f'Built and verified {DEST} ({len(files)} files)')
 

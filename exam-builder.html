@@ -1,0 +1,405 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data:; connect-src 'none'; base-uri 'none'; form-action 'none'"><title>Pain Partner · Examination review</title>
+<style>
+:root{font-family:system-ui,sans-serif;color:#18343b;background:#f4f7f8;line-height:1.5}*{box-sizing:border-box}body{margin:0}header{padding:25px clamp(16px,4vw,56px);background:#123e49;color:white}h1{margin:0;font-size:26px}header p{margin:5px 0;max-width:900px;color:#d9eaed}main{max-width:1500px;margin:auto;padding:22px;display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:22px}section{min-width:0}.toolbar,.card,.preview{background:white;border:1px solid #cbdade;border-radius:12px;padding:16px}.toolbar{grid-column:1/-1;display:flex;flex-wrap:wrap;align-items:end;gap:16px}label{display:block;font-size:14px;font-weight:600}button,select,input,textarea{font:inherit}button,select,input{padding:8px 10px;border:1px solid #94b1b8;border-radius:6px;background:white;color:#18343b}button{cursor:pointer}button:hover{background:#e9f4f5}button.primary{background:#135b65;color:white}button:disabled{opacity:.45;cursor:not-allowed}textarea{width:100%;min-height:90px;border:1px solid #afc5ca;border-radius:7px;padding:10px;resize:vertical;font-family:ui-monospace,monospace;font-size:13px}.preview{position:sticky;top:15px}#output{min-height:460px}#final-output{min-height:180px}.card{margin-bottom:12px}summary{cursor:pointer;font-weight:650}small,.hint{color:#526c73}.status{font-size:12px;margin-left:8px;color:#486e76}.controls{display:flex;flex-wrap:wrap;gap:10px;margin:12px 0}.choice{border:1px solid #d5e2e5;padding:8px;border-radius:8px;max-width:100%;min-width:170px}.choice select{max-width:100%;width:100%;font-size:13px}.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}.confirm{font-weight:400;display:flex;gap:8px;margin-top:12px}.hint{font-size:13px}.warning{color:#8b4a13;background:#fff6e9;padding:8px;border-radius:6px}#issues{font-size:13px;padding-left:20px}.badge{display:inline-block;background:#e3f1f0;border-radius:10px;padding:3px 10px;font-size:12px}.supported{border-left:4px solid #2c827a}input[type=checkbox]{width:17px;height:17px;flex-shrink:0}#copy-result{min-height:24px}#packet{display:none}@media(max-width:850px){main{display:block;padding:12px}.toolbar{margin-bottom:16px}.preview{position:static}.choice{width:100%;min-width:0}header{padding:20px}#output{min-height:260px}}
+</style></head><body>
+<header><h1>Examination review</h1><p>Supported findings first. Resolve only the remaining choices. Selecting <strong>null</strong> deletes that optional text.</p></header>
+<main><div class="toolbar"><label>Region<select id="region"><option value="lumbar">Lumbar</option><option value="cervical">Cervical</option><option value="shoulder">Shoulder</option></select></label><label>Section heading<input id="heading" value="EXAM"></label><button id="reset">Reset examination</button><button id="import">Load prepared exam</button><input id="packet" type="file" accept="application/json,.json"><span class="hint">No network requests or automatic storage. The assistant prepares the exam; importing is optional.</span></div>
+<section><div id="rows"></div></section><section><div class="preview"><span class="badge" id="status">Review</span><h2>Chart text with choices</h2><p class="hint">Native bracket syntax is kept for your clinical editor. Curly-brace groups remain unchanged.</p><textarea id="output" readonly aria-label="Review examination"></textarea><div class="actions"><button id="copy-review" class="primary">Copy review text</button><button id="download">Save review state</button></div><h2>Completed examination</h2><textarea id="final-output" readonly aria-label="Completed examination"></textarea><button id="copy-final" class="primary" disabled>Copy completed exam</button><p id="copy-result" role="status"></p><ul id="issues"></ul></div></section></main>
+<script id="exam-catalog" type="application/json">{
+  "version": 1,
+  "regions": {
+    "lumbar": {
+      "label": "Lumbar",
+      "lines": [
+        {
+          "id": "appearance",
+          "label": "Comfort, gait and aids",
+          "text": "- [Comfortable|Uncomfortable|Distressed] at rest. [Normal gait.|Antalgic gait.|Wide-based gait.|Trendelenburg gait.|High steppage gait.] [null|Uses 4WW.|Uses cane.|Uses brace.|Uses wheelchair.]"
+        },
+        {
+          "id": "rom",
+          "label": "Lumbar ROM",
+          "text": "- Lumbar ROM [full|restricted|pain on facet loading]."
+        },
+        {
+          "id": "palpation",
+          "label": "Palpation",
+          "text": "- Palpation: [no tenderness or trigger points|tenderness|trigger points] [null|over the|over the Rt|over the Lt|bilaterally over the] [null|midline|paraspinal muscles|erector spinae|thoracolumbar junction|QL|gluteus medius|iliac crest|PSIS|sacral sulcus]."
+        },
+        {
+          "id": "motor",
+          "label": "Motor",
+          "text": "- Motor: [bilateral L2-S1 5/5. Able to heel & toe walk|examLBPmotorcompl]."
+        },
+        {
+          "id": "reflexes",
+          "label": "Reflexes",
+          "text": "- Reflexes: [bilateral patellar & achilles 2+|Rt|Lt|patellar|achilles] [null|0|1+|2+|3+]."
+        },
+        {
+          "id": "sensation",
+          "label": "Sensation",
+          "text": "- Sensation: [symmetric and intact L2 - S1|Rt|Lt|reduced light touch|reduced pinprick|L2|L3|L4|L5|S1|non-dermatomal|stocking]."
+        },
+        {
+          "id": "tension",
+          "label": "Neural tension",
+          "text": "- Neural tension: [negative|positive|Rt|Lt|SLR|CLR|slump|femoral stretch]."
+        },
+        {
+          "id": "sij",
+          "label": "SI joint",
+          "text": "- SI: [null|Fortin positive Rt.|Fortin positive Lt.] [negative|positive|Rt|Lt|thigh thrust|distraction|compression|sacral thrust|Gaenslen|FABER]."
+        },
+        {
+          "id": "hip",
+          "label": "Hip",
+          "text": "- Hip: [negative|positive|Rt|Lt|log roll|FADDIR|FABER groin pain|scour|axial distraction relieves symptoms]. [null|IR at 90 degrees flexion: Rt ___ degrees, Lt ___ degrees.]"
+        },
+        {
+          "id": "gt",
+          "label": "Greater trochanter",
+          "text": "- GT: [negative|positive|Rt|Lt|GT tenderness|30s sustained single-leg stance|resisted external derotation|examLBPglut]."
+        },
+        {
+          "id": "deep",
+          "label": "Deep gluteal",
+          "text": "- Deep gluteal: [negative|positive|Rt|Lt|ischial tenderness|sciatic notch tenderness|PACE|FAIR|examLBPdeepglut]."
+        },
+        {
+          "id": "vascular",
+          "label": "Vascular (optional)",
+          "text": "[null|- Dorsalis pedis and posterior tibial palpable bilaterally.|- examLBPvasc]"
+        },
+        {
+          "id": "flexors",
+          "label": "Hip flexors (optional)",
+          "text": "[null|- Hip flexors: examLBPflexor]"
+        },
+        {
+          "id": "sensory",
+          "label": "Sensory characteristics (optional)",
+          "text": "[null|- Sensory characteristics: [no allodynia or hyperalgesia|Rt|Lt|allodynia to light touch|hyperalgesia to pinprick|aftersensation|temporal summation|tenderness extending beyond the painful region|mirror-image tenderness].]"
+        }
+      ]
+    },
+    "cervical": {
+      "label": "Cervical",
+      "lines": [
+        {
+          "id": "appearance",
+          "label": "Comfort, posture and collar",
+          "text": "- [Comfortable|Uncomfortable|Distressed] at rest. [Normal posture|Forward head posture|Guarded neck posture|Torticollis right|Torticollis left]. [null|Uses collar.]"
+        },
+        {
+          "id": "rom",
+          "label": "ROM and palpation",
+          "text": "- Cervical ROM [full|restricted].[null| Concordant pain on facet loading.| Concordant pain on extension-rotation.] [No trigger points|upper trapezius trigger points|levator scapulae trigger points|examCspinepalp]."
+        },
+        {
+          "id": "motor",
+          "label": "Motor",
+          "text": "- Motor: [bilateral C5-T1 5/5|examCspinemotor]."
+        },
+        {
+          "id": "reflexes",
+          "label": "Reflexes",
+          "text": "- Reflexes: {bilateral biceps, brachioradialis & triceps 2+|[left|right] biceps [0|1+|2+|3+], [left|right] brachioradialis [0|1+|2+|3+], [left|right] triceps [0|1+|2+|3+]}"
+        },
+        {
+          "id": "sensation",
+          "label": "Sensation",
+          "text": "- Sensation: [symmetric and intact C5 - T1|examCspinesen]"
+        },
+        {
+          "id": "spurling",
+          "label": "Spurling and neural tests",
+          "text": "- Spurling [negative|positive right|positive left].[null| Shoulder abduction relief positive.| Neck distraction relieves arm pain.| ULTT1 positive.]"
+        },
+        {
+          "id": "umn",
+          "label": "Upper motor neuron screen",
+          "text": "- UMN: [Hoffmann negative bilaterally, no clonus, tandem gait normal|examCspinemyelo]"
+        },
+        {
+          "id": "shoulder",
+          "label": "Shoulder screen",
+          "text": "- Shoulder: [impingement tests negative, normal ROM|examCspineshoulder]."
+        },
+        {
+          "id": "vascular",
+          "label": "Radial pulses (optional)",
+          "text": "[null|- Radial pulses palpable bilaterally.|- examCspinevasc]"
+        },
+        {
+          "id": "tos",
+          "label": "Thoracic outlet (optional)",
+          "text": "{null|- [Roos positive|Adson positive|Wright hyperabduction positive] [right|left]}"
+        }
+      ]
+    },
+    "shoulder": {
+      "label": "Shoulder",
+      "lines": [
+        {
+          "id": "appearance",
+          "label": "Comfort, appearance and sling",
+          "text": "- [Comfortable|Uncomfortable|Distressed] at rest. [Right|Left|Bilateral] shoulder: [no atrophy or asymmetry|supraspinatus/infraspinatus wasting|deltoid wasting|scapular dyskinesis|AC joint prominence]. [null|Uses sling.]"
+        },
+        {
+          "id": "rom",
+          "label": "Active and passive ROM",
+          "text": "- AROM [full|restricted], PROM [full|restricted]. [null|Painful arc.|ER at side reduced to approx ___ degrees, capsular pattern.]"
+        },
+        {
+          "id": "palpation",
+          "label": "Palpation",
+          "text": "- Palpation: [No focal tenderness|examShoulderpalp]"
+        },
+        {
+          "id": "cuff",
+          "label": "Rotator cuff",
+          "text": "- Rotator cuff: [strength and lag signs normal|examShouldercuff]"
+        },
+        {
+          "id": "impingement",
+          "label": "Impingement",
+          "text": "- Impingement: [Hawkins and Neer negative|Hawkins positive|Neer positive|Hawkins and Neer positive]"
+        },
+        {
+          "id": "labrum",
+          "label": "Biceps and labrum",
+          "text": "- Biceps/labrum: [Speed and O'Brien negative|examShoulderlabrum]"
+        },
+        {
+          "id": "ac",
+          "label": "AC joint",
+          "text": "- AC: cross-body adduction [negative|positive]"
+        },
+        {
+          "id": "stability",
+          "label": "Stability",
+          "text": "- Stability: [apprehension and relocation negative|apprehension positive, relieved by relocation|sulcus sign positive]"
+        },
+        {
+          "id": "neck",
+          "label": "Cervical screen",
+          "text": "- Neck: cervical ROM [full|restricted], Spurling [negative|positive right|positive left]"
+        },
+        {
+          "id": "neuro",
+          "label": "Motor and sensation",
+          "text": "- Motor: [bilateral C5-T1 5/5|examCspinemotor]. Sensation: [symmetric and intact C5 - T1|reduced over lateral deltoid (axillary)|examCspinesen]"
+        },
+        {
+          "id": "scapular",
+          "label": "Scapular assistance (optional)",
+          "text": "{null|- [scapular assistance test positive|scapular retraction test positive]}"
+        }
+      ]
+    }
+  },
+  "macros": {
+    "examCspinemotor": "[Right|Left]: shoulder abduction (C5) [5|4|3|2]/5, elbow flexion (C5-6) [5|4|3|2]/5, wrist extension (C6) [5|4|3|2]/5, elbow extension (C7) [5|4|3|2]/5, finger flexion (C8) [5|4|3|2]/5, finger abduction (T1) [5|4|3|2]/5. Contralateral 5/5.",
+    "examShouldercuff": "[Right|Left]: empty can [5|4|3|2]/5 [pain-free|painful], resisted ER [5|4|3|2]/5 [pain-free|painful], belly press [negative|positive], lift-off [negative|positive]. ER lag sign [negative|positive]. Drop arm [negative|positive].",
+    "examLBPdeepglut": "tender over the [Rt|Lt|ischial tuberosity|sciatic notch|deep gluteal space|ischiofemoral space]. PACE [negative|positive Rt|positive Lt]. FAIR [negative|positive Rt|positive Lt] [null|, with concordant radiation below the knee]. [null|Freiberg [negative|positive Rt|positive Lt].] [null|Beatty [negative|positive Rt|positive Lt].] [null|Bent-knee hamstring stretch [negative|positive Rt|positive Lt].]"
+  },
+  "notes": {
+    "braces": "Native brace groups are preserved; their selection semantics have not been specified. Resolve in the clinical editor or enter the actual finding.",
+    "normal": "Templates are choices, not observations. Normal shorthand uses the separately approved physical-exam macros, not every test in this scaffold.",
+    "contralateral": "Contralateral 5/5 is a finding: confirm it or replace it with the actually examined result.",
+    "multi": "Side and test/site combinations may require several selections. The reviewer decides which combination expresses the examination."
+  }
+}</script>
+<script id="exam-source" type="application/json">{
+  "preferences_sha256": "69b7df00b0632e4658de42355066e58f329c93b7951dc4ce17e515ce374af621",
+  "physical_exam_sha256": "44dd4ed1be209529b8cf66b1254a668f217ae9d789d978c02116d42fd8c05b2a"
+}</script>
+<script id="exam-prefill" type="application/json">null</script>
+<script id="exam-engine">
+/* Deterministic examination text assembly. No clinical inference or persistence. */
+(function(root){
+'use strict';
+const own=(o,k)=>Object.prototype.hasOwnProperty.call(o,k);
+const obj=o=>o&&typeof o==='object'&&!Array.isArray(o);
+function parse(text,prefix='',offset=0,depth=0){
+ if(typeof text!=='string')throw new Error('Examination text must be a string.');
+ if(depth>40)throw new Error('Examination nesting is too deep.');
+ const nodes=[];let start=0;
+ const push=end=>{if(end>start)nodes.push({type:'text',text:text.slice(start,end),offset:offset+start});};
+ for(let i=0;i<text.length;i++){
+  if(text[i]===']'||text[i]==='}')throw new Error('Unexpected examination selection delimiter.');
+  if(text[i]!== '['&&text[i]!== '{')continue;
+  push(i);const open=text[i],close=open==='['?']':'}';let stack=[close],j=i+1;
+  for(;j<text.length&&stack.length;j++){
+   const c=text[j];if(c==='[')stack.push(']');else if(c==='{')stack.push('}');
+   else if(c===']'||c==='}') {if(c!==stack.pop())throw new Error('Mismatched examination selection delimiters.');}
+  }
+  if(stack.length)throw new Error('Unclosed examination selection.');
+  const raw=text.slice(i,j),id=prefix+(open==='['?'g':'b')+(offset+i);
+  if(open==='{')nodes.push({type:'opaque',id,raw});
+  else {
+   const inner=raw.slice(1,-1);let from=0,nest=0;const options=[];
+   for(let k=0;k<=inner.length;k++){
+    const c=inner[k];if(c==='['||c==='{')nest++;else if(c===']'||c==='}')nest--;
+    if(k===inner.length||(c==='|'&&nest===0)){
+     const option=inner.slice(from,k);options.push({raw:option,nodes:parse(option,prefix,offset+i+1+from,depth+1)});from=k+1;
+    }
+   }
+   nodes.push({type:'group',id,raw,options});
+  }
+  i=j-1;start=j;
+ }
+ push(text.length);return nodes;
+}
+function cleanup(text){
+ return text.split(/\r?\n/).map(line=>line.replace(/[ \t]{2,}/g,' ').replace(/\s+([,.;:])/g,'$1').replace(/,\s*([.;])/g,'$1').replace(/\.\s*\./g,'.').trim()).filter(line=>line&&!/^[-•]?[\s.,;:]*$/.test(line)).join('\n');
+}
+// IDs from parse offsets remain stable. Macro groups use `<origin>/m<name>/g<offset>`.
+// Arrays explicitly select multiple square-group options; no multi-select is inferred.
+function renderLine(text,selections={},macros={},options={}){
+ if(!obj(selections)||!obj(macros))throw new Error('Selections and macros must be objects.');
+ const unresolved=[],controls=[],issues=[];let omitted=false,expanded=false;
+ function expandText(node,allowed,path,chain){
+  return node.text.replace(/\bexam[A-Za-z0-9_]+\b/g,(name,at)=>{
+   const id=path+'m'+name+'@'+(node.offset+at);
+   if(!own(macros,name)||typeof macros[name]!=='string') {unresolved.push({id,kind:'macro',name});return name;}
+   if(!allowed){unresolved.push({id,kind:'macro',name,available:true});return name;}
+   if(chain.includes(name)||chain.length>20){issues.push('Cyclic macro expansion: '+name);unresolved.push({id,kind:'macro',name});return name;}
+   expanded=true;return walk(parse(macros[name],id+'/',0),true,id+'/',chain.concat(name));
+  });
+ }
+ function walk(nodes,allowed=false,path='',chain=[]){
+  return nodes.map(node=>{
+   if(node.type==='text')return expandText(node,allowed,path,chain);
+   if(node.type==='opaque'){
+    controls.push({id:node.id,kind:'opaque',raw:node.raw,options:[],value:null});
+    unresolved.push({id:node.id,kind:'opaque',raw:node.raw});return node.raw;
+   }
+   const has=own(selections,node.id),choice=has?selections[node.id]:undefined;
+   const indices=Array.isArray(choice)?choice:[choice];
+   controls.push({id:node.id,kind:'group',raw:node.raw,options:node.options.map(o=>o.raw),value:has?choice:null});
+   if(!has||choice===null||choice===undefined||indices.length===0){unresolved.push({id:node.id,kind:'selection'});return node.raw;}
+   if(indices.some(i=>!Number.isInteger(i)||i<0||i>=node.options.length)||new Set(indices).size!==indices.length){issues.push('Invalid selection for '+node.id);unresolved.push({id:node.id,kind:'selection'});return node.raw;}
+   const nulls=indices.filter(i=>node.options[i].raw.trim()==='null');
+   if(nulls.length){
+    if(indices.length!==1){issues.push('null cannot be combined with another option: '+node.id);unresolved.push({id:node.id,kind:'selection'});return node.raw;}
+    omitted=true;return '';
+   }
+   return indices.map(i=>walk(node.options[i].nodes,true,node.id+'/o'+i+'/',chain)).join(' ');
+  }).join('');
+ }
+ let rendered=walk(parse(text),options.expandRawMacros===true);
+ if(/___/.test(rendered))unresolved.push({id:'measurement',kind:'measurement'});
+ if(omitted||expanded)rendered=cleanup(rendered);
+ if(rendered.split(/\r?\n/).some(line=>/^\s*-?\s*[^:\[\]{}]+:\s*[.;]?\s*$/.test(line)))unresolved.push({id:'empty-label',kind:'empty_label'});
+ return {text:rendered,unresolved,controls,issues};
+}
+function render(state,catalog,mode='review'){
+ const issues=[],unresolved=[];const lines=[];const rowResults=[];
+ if(!['review','final'].includes(mode))return {text:'',ready:false,issues:['Unknown output mode.'],unresolved:[],rows:[]};
+ if(!obj(state)||!obj(catalog)||!obj(catalog.regions)||!own(catalog.regions,state.region))return {text:'',ready:false,issues:['Select a known examination region.'],unresolved:[],rows:[]};
+ const region=catalog.regions[state.region];const definitions=region.lines;
+ if(!Array.isArray(definitions))return {text:'',ready:false,issues:['Region lines must be an array.'],unresolved:[],rows:[]};
+ if(!definitions.length)issues.push('The selected region has no examination rows.');
+ const header=state.header===undefined?'EXAM':state.header;
+ if(typeof header!=='string'||! /^(?:EXAM|Previous EXAM|previous EXAM|Referral exam)(?: [^\r\n]+)?$/.test(header))issues.push('Use an explicit current or historical examination header.');
+ if(state.rows!==undefined&&!obj(state.rows))issues.push('Examination rows must be an object.');
+ const rows=obj(state.rows)?state.rows:{};const ids=new Set(definitions.map(d=>d.id));
+ if(ids.size!==definitions.length)issues.push('Examination row identifiers must be unique.');
+ for(const id of Object.keys(rows))if(!ids.has(id))issues.push('Unknown examination row: '+id);
+ for(const def of definitions){
+  const row=own(rows,def.id)?rows[def.id]:{};
+  if(!obj(row)){issues.push('Invalid row: '+def.id);continue;}
+  const status=row.status||'review';
+  if(!['review','supported','omitted'].includes(status)){issues.push('Invalid row status: '+def.id);continue;}
+  if(status==='omitted'){rowResults.push({id:def.id,text:'',omitted:true,controls:[],unresolved:[]});continue;}
+  const text=own(row,'text')?row.text:def.text;
+  try {
+   const result=renderLine(text,row.selections||{},catalog.macros||{},{expandRawMacros:status==='supported'});
+   const line=result.text.trim();rowResults.push({id:def.id,...result});
+   issues.push(...result.issues.map(x=>def.id+': '+x));unresolved.push(...result.unresolved.map(x=>({row:def.id,...x})));
+   if(line){
+    lines.push(line);
+    // The whole row must be supported or explicitly confirmed, including fixed macro
+    // suffixes such as Contralateral 5/5. A selected side/grade is not that confirmation.
+    if(status!=='supported'&&row.confirmed!==true)unresolved.push({row:def.id,id:'confirmation',kind:'confirmation'});
+   }
+  }catch(error){issues.push(def.id+': '+error.message);}
+ }
+ const ready=issues.length===0&&unresolved.length===0;
+ const text=[header,...lines].join('\n');
+ return {text:mode==='final'&&!ready?'':text,issues,unresolved,ready,rows:rowResults};
+}
+// Exact current/historical header selection; adjacent content and surrounding
+// whitespace remain byte-for-byte unchanged. Unknown/duplicate headers fail closed.
+function replaceSection(chart,header,exam){
+ if([chart,header,exam].some(v=>typeof v!=='string')||/[\r\n]/.test(header))throw new Error('Invalid section replacement input.');
+ const matches=[];let offset=0;const all=chart.match(/[^\r\n]*(?:\r\n|\n|\r|$)/g)||[];
+ for(const raw of all){if(!raw)continue;const content=raw.replace(/[\r\n]+$/,'');if(content===header)matches.push({start:offset,end:offset+raw.length});offset+=raw.length;}
+ if(matches.length!==1)throw new Error('Examination header must occur exactly once.');
+ if(!exam.startsWith(header+'\n')&&!exam.startsWith(header+'\r\n')&&exam!==header)throw new Error('Replacement must retain the selected examination header.');
+ const start=matches[0].start;let end=chart.length;offset=matches[0].end;
+ const tail=chart.slice(offset).match(/[^\r\n]*(?:\r\n|\n|\r|$)/g)||[];
+ for(const raw of tail){
+  if(!raw)continue;const content=raw.replace(/[\r\n]+$/,'');
+  if(/^(?:[A-Z][A-Z /_-]{2,}|(?:Previous EXAM|previous EXAM|Referral exam)(?: .*)?|CC:)\s*$/.test(content)){end=offset;break;}
+  offset+=raw.length;
+ }
+ const section=chart.slice(start,end);const spacing=(section.match(/(?:\r\n|\n|\r)+$/)||[''])[0];
+ return chart.slice(0,start)+exam.replace(/(?:\r\n|\n|\r)+$/,'')+spacing+chart.slice(end);
+}
+const api={parse,renderLine,render,replaceSection};
+if(typeof module!=='undefined'&&module.exports)module.exports=api;
+root.ExamEngine=api;
+})(typeof globalThis!=='undefined'?globalThis:this);
+
+</script>
+<script id="exam-ui">
+const catalog=JSON.parse(document.getElementById('exam-catalog').textContent);
+let state={region:'lumbar',header:'EXAM',rows:{}};
+const byId=id=>document.getElementById(id);
+function rowState(id){return state.rows[id]||(state.rows[id]={status:'review',selections:{},confirmed:false});}
+function invalidate(row){row.confirmed=false;if(row.status==='supported')row.status='review';delete row.evidence;byId('copy-result').textContent='';}
+function el(tag,text,cls){const x=document.createElement(tag);if(text!==undefined)x.textContent=text;if(cls)x.className=cls;return x;}
+function outputs(){
+ try{const review=ExamEngine.render(state,catalog,'review'), final=ExamEngine.render(state,catalog,'final');byId('output').value=review.text;byId('final-output').value=final.ready?final.text:'';byId('copy-final').disabled=!final.ready;byId('status').textContent=final.ready?'Completed':'Review — choices remain';byId('issues').replaceChildren(...final.issues.map(x=>el('li',typeof x==='string'?x:JSON.stringify(x))),...Array.from(new Set(final.unresolved.map(x=>x.row+': '+({confirmation:'confirm the whole line',selection:'choose or omit',macro:'macro definition needed',opaque:'resolve the native brace group or edit the line',measurement:'enter the measured value',empty_label:'remove the empty label'}[x.kind]||x.kind)))).map(x=>el('li',x)));byId('copy-review').disabled=!review.text;}
+ catch(e){byId('output').value='';byId('final-output').value='';byId('copy-final').disabled=true;byId('copy-review').disabled=true;byId('issues').replaceChildren(el('li',e.message));}
+}
+function draw(){
+ byId('region').value=state.region;byId('heading').value=state.header;byId('rows').replaceChildren();
+ for(const spec of catalog.regions[state.region].lines){
+  const row=rowState(spec.id), card=el('details',undefined,'card'+(row.status==='supported'?' supported':''));card.open=row.status!=='omitted';
+  const summary=el('summary',spec.label);summary.append(el('span',row.status==='omitted'?'Omitted':row.status==='supported'?'Populated':row.confirmed?'Confirmed':'Review','status'));card.append(summary);
+  const textarea=el('textarea');textarea.value=row.text??spec.text;textarea.setAttribute('aria-label',spec.label+' wording');
+  const controls=el('div',undefined,'controls');
+  let parsed;try{parsed=ExamEngine.renderLine(textarea.value,row.selections||{},catalog.macros,{expandRawMacros:row.status==='supported'});}
+  catch(e){card.append(el('p',e.message,'warning'));}
+  for(const control of parsed?.controls||[]){
+   if(control.kind!=='group')continue;
+   const box=el('div',undefined,'choice'), label=el('label','Choose finding');const select=el('select');select.setAttribute('aria-label',spec.label+' '+control.id);
+   select.append(new Option('Select…',''));const options=control.options.map(x=>typeof x==='string'?x:x.raw);
+   options.forEach((text,i)=>select.append(new Option(text==='null'?'null — omit':text,String(i))));
+   const existing=row.selections?.[control.id];select.multiple=Array.isArray(existing);if(select.multiple){select.size=Math.min(5,options.length+1);for(const o of select.options)o.selected=existing.includes(Number(o.value))&&o.value!=='';}else select.value=existing===undefined?'':String(existing);
+   select.onchange=()=>{invalidate(row);row.selections=row.selections||{};if(select.multiple){const values=Array.from(select.selectedOptions).filter(o=>o.value!=='').map(o=>Number(o.value));if(values.length)row.selections[control.id]=values;else delete row.selections[control.id];}else if(select.value==='')delete row.selections[control.id];else row.selections[control.id]=Number(select.value);draw();};
+   const multi=el('input');multi.type='checkbox';multi.checked=select.multiple;multi.setAttribute('aria-label',spec.label+' '+control.id+' multiple');multi.onchange=()=>{invalidate(row);if(multi.checked){row.selections[control.id]=existing===undefined?[]:[].concat(existing);}else delete row.selections[control.id];draw();};const multiLabel=el('label',undefined,'confirm');multiLabel.append(multi,document.createTextNode('Select several (side + finding)'));label.append(select);box.append(label,multiLabel);controls.append(box);
+  }
+  if(textarea.value.includes('{'))card.append(el('p',catalog.notes.braces,'hint'));
+  if((parsed?.text||'').includes('Contralateral 5/5'))card.append(el('p',catalog.notes.contralateral,'warning'));
+  textarea.onchange=()=>{invalidate(row);row.text=textarea.value;row.selections={};row.status='review';draw();};
+  card.append(controls);const edit=el('details');edit.append(el('summary','Edit wording / enter a specific finding'),textarea);card.append(edit);
+  const confirm=el('input');confirm.type='checkbox';confirm.checked=row.confirmed===true||row.status==='supported';confirm.setAttribute('aria-label','Confirm '+spec.label);confirm.onchange=()=>{row.confirmed=confirm.checked;if(row.status==='supported')row.status='review';outputs();};const confirmLabel=el('label',undefined,'confirm');confirmLabel.append(confirm,document.createTextNode('The whole line reflects the examination, including fixed wording.'));card.append(confirmLabel);
+  const actions=el('div',undefined,'actions'),omit=el('button',row.status==='omitted'?'Restore choices':'Omit entire line');omit.onclick=()=>{invalidate(row);row.status=row.status==='omitted'?'review':'omitted';draw();};const reset=el('button','Reset line');reset.onclick=()=>{delete state.rows[spec.id];draw();};actions.append(omit,reset);card.append(actions);byId('rows').append(card);
+ }
+ outputs();
+}
+byId('region').onchange=()=>{state={region:byId('region').value,header:state.header,rows:{}};draw();};byId('heading').onchange=()=>{state.header=byId('heading').value;outputs();};byId('reset').onclick=()=>{state={region:state.region,header:'EXAM',rows:{}};draw();};
+async function copy(id){try{await navigator.clipboard.writeText(byId(id).value);byId('copy-result').textContent='Copied.';}catch{byId(id).focus();byId(id).select();byId('copy-result').textContent='Select and copy the highlighted text.';}}
+byId('copy-review').onclick=()=>copy('output');byId('copy-final').onclick=()=>copy('final-output');
+function adopt(value){const next=value.state||value;if(!next||!catalog.regions[next.region]||typeof next.header!=='string'||!next.rows||typeof next.rows!=='object'||Array.isArray(next.rows))throw Error('Invalid examination state.');const result=ExamEngine.render(next,catalog,'review');if(!result.text&&result.issues.length)throw Error(result.issues.join('\n'));state=structuredClone(next);draw();}
+byId('import').onclick=()=>byId('packet').click();byId('packet').onchange=async()=>{try{adopt(JSON.parse(await byId('packet').files[0].text()));}catch(e){byId('copy-result').textContent=e.message;}byId('packet').value='';};
+byId('download').onclick=()=>{const url=URL.createObjectURL(new Blob([JSON.stringify({state},null,2)],{type:'application/json'}));const a=el('a');a.href=url;a.download='exam-review.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),0);};
+window.ExamReview={getState:()=>structuredClone(state),load:adopt};
+try{const prefill=JSON.parse(byId('exam-prefill').textContent);if(prefill)adopt(prefill);else draw();}catch(e){byId('copy-result').textContent=e.message;draw();}
+</script></body></html>
